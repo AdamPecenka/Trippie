@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
+using System.Reflection;
+using TrippieBackend.Common;
 using TrippieBackend.Models;
 using TrippieBackend.Services;
-using TrippieBackend.Common;
 
 namespace TrippieBackend;
 
@@ -10,8 +12,6 @@ public class Program {
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddControllers();
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        builder.Services.AddOpenApi();
 
         builder.Services.AddEntityFrameworkNpgsql();
         builder.Services.AddDbContext<TrippieContext>(options =>
@@ -21,22 +21,40 @@ public class Program {
 
         builder.Services.AddServices();
 
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo {
+                Title = "Trippie API",
+                Version = "v1",
+                Description = "API for the Trippie mobile app"
+            });
+
+            // Include XML comments
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            c.IncludeXmlComments(xmlPath);
+        });
+
         var utils = new Utils();
         string localIpAddress = utils.GetLocalIpAdress();
         builder.WebHost.ConfigureKestrel(options => {
-            // Http
-            options.Listen(System.Net.IPAddress.Parse(localIpAddress), 5089);
-            // Https
-            options.Listen(System.Net.IPAddress.Parse(localIpAddress), 7244, listenOptions => {
+            options.Listen(System.Net.IPAddress.Parse(localIpAddress), 5001);
+            options.Listen(System.Net.IPAddress.Parse(localIpAddress), 5002, listenOptions => {
                 listenOptions.UseHttps();
             });
+            options.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5004, listenOptions => {
+                listenOptions.UseHttps();
+            });
+            options.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5003);
         });
 
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
         if(app.Environment.IsDevelopment()) {
-            app.MapOpenApi();
+            app.UseSwagger();
+            app.UseSwaggerUI();
         }
 
         app.UseHttpsRedirection();
