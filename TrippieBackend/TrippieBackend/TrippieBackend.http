@@ -1,0 +1,6 @@
+@TrippieBackend_HostAddress = http://localhost:5089
+
+GET {{TrippieBackend_HostAddress}}/api/user/1
+Accept: application/json
+
+###
