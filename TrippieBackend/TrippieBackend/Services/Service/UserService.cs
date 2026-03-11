@@ -10,7 +10,7 @@ public class UserService : IUserService{
         _context = context;
     }
 
-    public async Task<User?> GetUserById(int userId) {
+    public async Task<User?> GetUserById(Guid userId) {
         return await _context.Users.FindAsync(userId);
     }
 

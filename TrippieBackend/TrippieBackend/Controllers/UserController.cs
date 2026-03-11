@@ -18,8 +18,9 @@ public class UserController: ControllerBase {
     /// </summary>
     /// <param name="id">The unique identifier of the user.</param>
     /// <returns>The user with the specified ID, or NotFound if the user does not exist.</returns>
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<User>> GetUserById(int id) {
+    [HttpGet("{id:Guid}")]
+    public async Task<ActionResult<User>> GetUserById(Guid id) {
+        Console.WriteLine($"[i] User id: {id}");
         var user = await _userService.GetUserById(id);
 
         if(user == null) {

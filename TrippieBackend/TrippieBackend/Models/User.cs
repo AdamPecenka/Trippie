@@ -7,7 +7,7 @@ namespace TrippieBackend.Models;
 
 public partial class User
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     public string Firstname { get; set; }
 
@@ -18,4 +18,10 @@ public partial class User
     public string PhoneNumber { get; set; }
 
     public string Password { get; set; }
+
+    public DateTime? CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

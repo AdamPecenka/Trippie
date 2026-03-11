@@ -19,6 +19,10 @@
    "T4TemplatePath": null,
    "Tables": [
       {
+         "Name": "public.refresh_tokens",
+         "ObjectType": 0
+      },
+      {
          "Name": "public.users",
          "ObjectType": 0
       }
