@@ -1,0 +1,1 @@
+- zacat pouzivat uuid ako primarne kluce

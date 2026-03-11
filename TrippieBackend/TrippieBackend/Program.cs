@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Reflection;
+using System.Text;
 using TrippieBackend.Common;
 using TrippieBackend.Models;
 using TrippieBackend.Services;
@@ -19,12 +22,9 @@ public class Program {
                 ServiceLifetime.Transient, ServiceLifetime.Transient
         );
 
-        builder.Services.AddServices();
-
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("v1", new OpenApiInfo {
+        builder.Services.AddSwaggerGen(config => {
+            config.SwaggerDoc("v1", new OpenApiInfo {
                 Title = "Trippie API",
                 Version = "v1",
                 Description = "API for the Trippie mobile app"
@@ -33,7 +33,7 @@ public class Program {
             // Include XML comments
             var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-            c.IncludeXmlComments(xmlPath);
+            config.IncludeXmlComments(xmlPath);
         });
 
         var utils = new Utils();
@@ -43,15 +43,39 @@ public class Program {
             options.Listen(System.Net.IPAddress.Parse(localIpAddress), 5002, listenOptions => {
                 listenOptions.UseHttps();
             });
+            options.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5003);
             options.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5004, listenOptions => {
                 listenOptions.UseHttps();
             });
-            options.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5003);
         });
 
+        builder.Services.AddAuthentication("jwtTokens")
+            .AddJwtBearer("jwtTokens", options => {
+                options.TokenValidationParameters = new TokenValidationParameters {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = "yourdomain.com",
+                    ValidAudience = "yourdomain.com",
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["API:JwtSecretKey"]))
+                };
+            });
+
+        builder.Services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+        });
+
+        builder.Services.AddServices();
+
+
+
+        // Middleware pipeline
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
         if(app.Environment.IsDevelopment()) {
             app.UseSwagger();
             app.UseSwaggerUI();
@@ -59,8 +83,9 @@ public class Program {
 
         app.UseHttpsRedirection();
 
-        app.UseAuthorization();
+        app.UseAuthentication();
 
+        app.UseAuthorization();
 
         app.MapControllers();
 

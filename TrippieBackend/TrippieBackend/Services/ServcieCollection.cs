@@ -7,6 +7,7 @@ public static class ServiceCollection {
     public static IServiceCollection AddServices(this IServiceCollection services) {
 
         services.AddTransient<IUserService, UserService>();
+        services.AddTransient<IAuthService, AuthService>();
 
         return services;
     }
