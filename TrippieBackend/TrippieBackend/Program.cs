@@ -6,10 +6,11 @@ using System.Reflection;
 using System.Text;
 using TrippieBackend.Common;
 using TrippieBackend.Models;
+using TrippieBackend.Models.Enums;
 using TrippieBackend.Services;
 
 namespace TrippieBackend;
-
+                                                            
 public class Program {
     public static void Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
@@ -18,8 +19,13 @@ public class Program {
 
         builder.Services.AddEntityFrameworkNpgsql();
         builder.Services.AddDbContext<TrippieContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("TrippieConnectionString")),
-                ServiceLifetime.Transient, ServiceLifetime.Transient
+            options.UseNpgsql(builder.Configuration.GetConnectionString("TrippieConnectionString"), o => 
+                o.MapEnum<ThemeEnum>("theme_enum")
+                .MapEnum<TransportTypeEnum>("transport_type_enum")
+                .MapEnum<TripStatusEnum>("trip_status_enum")
+                .MapEnum<TripRoleEnum>("trip_role_enum")
+                .MapEnum<TravelDirectionEnum>("travel_direction_enum")
+            ), ServiceLifetime.Transient, ServiceLifetime.Transient
         );
 
         builder.Services.AddEndpointsApiExplorer();
@@ -56,9 +62,9 @@ public class Program {
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = "yourdomain.com",
-                    ValidAudience = "yourdomain.com",
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["API:JwtSecretKey"]))
+                    ValidIssuer = builder.Configuration["Auth:JwtIssuer"],
+                    ValidAudience = builder.Configuration["Auth:JwtAudience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Auth:JwtSecretKey"]))
                 };
             });
 

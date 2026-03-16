@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TrippieBackend.Models;
+using TrippieBackend.Models.Model;
 using TrippieBackend.Services.IService;
 
 namespace TrippieBackend.Controllers;
@@ -20,7 +20,6 @@ public class UserController: ControllerBase {
     /// <returns>The user with the specified ID, or NotFound if the user does not exist.</returns>
     [HttpGet("{id:Guid}")]
     public async Task<ActionResult<User>> GetUserById(Guid id) {
-        Console.WriteLine($"[i] User id: {id}");
         var user = await _userService.GetUserById(id);
 
         if(user == null) {

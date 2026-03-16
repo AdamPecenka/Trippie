@@ -1,4 +1,4 @@
-﻿using TrippieBackend.Models;
+﻿using TrippieBackend.Models.Model;
 
 namespace TrippieBackend.Services.IService;
 

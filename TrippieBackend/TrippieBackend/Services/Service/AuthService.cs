@@ -23,14 +23,14 @@ public class AuthService : IAuthService {
             new Claim(JwtRegisteredClaimNames.Email, email)
         };
     
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["API:JwtSecretKey"]));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Auth:JwtSecretKey"]));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: "yourdomain.com",
-            audience: "yourdomain.com",
+            issuer: _configuration["Auth:JwtIssuer"],
+            audience: _configuration["Auth:JwtAudience"],
             claims: claims,
-            expires: DateTime.Now.AddMinutes(30),
+            expires: DateTime.Now.AddMinutes(15),
             signingCredentials: creds);
 
         return Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token));
