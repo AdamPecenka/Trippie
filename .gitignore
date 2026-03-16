@@ -12,9 +12,6 @@ obj/
 # Rider
 .idea/
 
-# EF Core Migrations (optional)
-Migrations/
-
 # User secrets
 appsettings.Development.json
 appsettings.json
