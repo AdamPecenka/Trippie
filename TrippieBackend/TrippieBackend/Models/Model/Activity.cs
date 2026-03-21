@@ -24,8 +24,8 @@ public class Activity
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
-    
-    
+
+
     public Trip? Trip { get; set; }
     
     public Place? Place { get; set; }
