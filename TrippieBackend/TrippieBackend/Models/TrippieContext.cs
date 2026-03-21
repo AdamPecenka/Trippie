@@ -21,6 +21,7 @@ public class TrippieContext : DbContext
     public DbSet<UserLastLocation> UserLastLocations => Set<UserLastLocation>();
     public DbSet<Flight> Flights => Set<Flight>();
     public DbSet<Accommodation> Accommodations => Set<Accommodation>();
+    public DbSet<Airport> Airports => Set<Airport>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -80,7 +81,7 @@ public class TrippieContext : DbContext
             entity.ToTable("places");
 
             entity.HasKey(p => p.Id);
-            entity.Property(p => p.Id).HasColumnName("id");
+            entity.Property(p => p.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
 
             entity.Property(p => p.Name).HasColumnName("name").HasMaxLength(255).IsRequired();
             entity.Property(p => p.Address).HasColumnName("address");
@@ -280,25 +281,37 @@ public class TrippieContext : DbContext
         modelBuilder.Entity<Flight>(entity =>
         {
             entity.ToTable("flights");
- 
+
             entity.HasKey(f => f.Id);
             entity.Property(f => f.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
- 
+
             entity.Property(f => f.TripId).HasColumnName("trip_id").IsRequired();
             entity.Property(f => f.TravelDirection).HasColumnName("travel_direction").IsRequired();
             entity.Property(f => f.FlightNumber).HasColumnName("flight_number").HasMaxLength(20);
-            entity.Property(f => f.DepartureAirport).HasColumnName("departure_airport").HasMaxLength(10);
-            entity.Property(f => f.ArrivalAirport).HasColumnName("arrival_airport").HasMaxLength(10);
+            entity.Property(f => f.DepartureAirportId).HasColumnName("departure_airport_id").IsRequired();
+            entity.Property(f => f.ArrivalAirportId).HasColumnName("arrival_airport_id").IsRequired();
             entity.Property(f => f.DepartureTime).HasColumnName("departure_time");
             entity.Property(f => f.ArrivalTime).HasColumnName("arrival_time");
             entity.Property(f => f.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("now()");
             entity.Property(f => f.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("now()");
- 
+
             entity.HasOne(f => f.Trip)
                 .WithMany()
                 .HasForeignKey(f => f.TripId)
                 .HasConstraintName("fk_flights_trip")
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(f => f.DepartureAirport)
+                .WithMany()
+                .HasForeignKey(f => f.DepartureAirportId)
+                .HasConstraintName("fk_flights_departure_airport")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(f => f.ArrivalAirport)
+                .WithMany()
+                .HasForeignKey(f => f.ArrivalAirportId)
+                .HasConstraintName("fk_flights_arrival_airport")
+                .OnDelete(DeleteBehavior.Restrict);
         });
         
         modelBuilder.Entity<Accommodation>(entity =>
@@ -326,6 +339,23 @@ public class TrippieContext : DbContext
                 .HasForeignKey(a => a.PlaceId)
                 .HasConstraintName("fk_accommodations_place")
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Airport>(e =>
+        {
+            e.ToTable("airports");
+
+            e.HasKey(a => a.Id);
+            e.Property(a => a.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            e.Property(a => a.Name).HasColumnName("name").HasMaxLength(255).IsRequired();
+            e.Property(a => a.City).HasColumnName("city").HasMaxLength(255).IsRequired();
+            e.Property(a => a.Country).HasColumnName("country").HasMaxLength(255).IsRequired();
+            e.Property(a => a.IataCode).HasColumnName("iata_code").HasMaxLength(3).IsRequired();
+            e.Property(a => a.Latitude).HasColumnName("latitude").HasColumnType("decimal(9,6)").IsRequired();
+            e.Property(a => a.Longitude).HasColumnName("longitude").HasColumnType("decimal(9,6)").IsRequired();
+            e.Property(a => a.Timezone).HasColumnName("timezone").HasColumnType("decimal(5,2)").IsRequired();
+
+            e.HasIndex(a => a.IataCode).IsUnique();
         });
     }
 }

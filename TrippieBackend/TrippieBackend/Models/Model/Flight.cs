@@ -14,9 +14,9 @@ public class Flight
 
     public string? FlightNumber { get; set; }
 
-    public string? DepartureAirport { get; set; }
-
-    public string? ArrivalAirport { get; set; }
+    public Guid DepartureAirportId { get; set; }
+    
+    public Guid ArrivalAirportId { get; set; } 
 
     public DateTime? DepartureTime { get; set; }
 
@@ -28,4 +28,6 @@ public class Flight
     
     
     public Trip Trip { get; set; } = null!;
+    public Airport DepartureAirport { get; set; } = null!;
+    public Airport ArrivalAirport { get; set; } = null!;
 }

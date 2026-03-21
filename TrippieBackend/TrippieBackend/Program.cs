@@ -8,16 +8,16 @@ using TrippieBackend.Common;
 using TrippieBackend.Models;
 using TrippieBackend.Models.Enums;
 using TrippieBackend.Services;
+using TrippieBackend.Seeds;
 
 namespace TrippieBackend;
                                                             
 public class Program {
-    public static void Main(string[] args) {
+    public static async Task Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
-
+        
         builder.Services.AddControllers();
 
-        builder.Services.AddEntityFrameworkNpgsql();
         builder.Services.AddDbContext<TrippieContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("TrippieConnectionString"), o => 
                 o.MapEnum<ThemeEnum>("theme_enum")
@@ -25,7 +25,25 @@ public class Program {
                 .MapEnum<TripStatusEnum>("trip_status_enum")
                 .MapEnum<TripRoleEnum>("trip_role_enum")
                 .MapEnum<TravelDirectionEnum>("travel_direction_enum")
-            ), ServiceLifetime.Transient, ServiceLifetime.Transient
+            )
+            .UseAsyncSeeding(async (context, _, cancellationToken) =>
+            {
+                await AirportSeeder.SeedAsync(context, cancellationToken);         // no deps
+                // await PlaceSeeder.SeedAsync(context, cancellationToken);        // no deps
+                await UserSeeder.SeedAsync(context, cancellationToken);            // no deps
+                // await TripSeeder.SeedAsync(context, cancellationToken);            // → Users, Places
+                // await TripMemberSeeder.SeedAsync(context, cancellationToken);      // → Trips, Users
+                // await TripInviteSeeder.SeedAsync(context, cancellationToken);      // → Trips, Users
+                // await FlightSeeder.SeedAsync(context, cancellationToken);          // → Trips, Airports
+                // await AccommodationSeeder.SeedAsync(context, cancellationToken);   // → Trips, Places
+                // await ActivitySeeder.SeedAsync(context, cancellationToken);        // → Trips, Places, Users
+                // await FavoriteSeeder.SeedAsync(context, cancellationToken);        // → Users, Places
+                // await UserLastLocationSeeder.SeedAsync(context, cancellationToken);// → Users, Trips
+            })
+            .UseLoggerFactory(LoggerFactory.Create(b =>
+                b.AddConsole()
+                    .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)
+            )), ServiceLifetime.Transient, ServiceLifetime.Transient
         );
 
         builder.Services.AddEndpointsApiExplorer();
@@ -68,8 +86,7 @@ public class Program {
                 };
             });
 
-        builder.Services.AddAuthorization(options =>
-        {
+        builder.Services.AddAuthorization(options => {
             options.FallbackPolicy = new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
                 .Build();
@@ -81,6 +98,13 @@ public class Program {
 
         // Middleware pipeline
         var app = builder.Build();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<TrippieContext>();
+            // await db.Database.MigrateAsync();
+            // await db.Database.EnsureCreatedAsync();
+        }
 
         if(app.Environment.IsDevelopment()) {
             app.UseSwagger();

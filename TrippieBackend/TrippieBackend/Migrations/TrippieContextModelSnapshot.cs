@@ -132,6 +132,58 @@ namespace TrippieBackend.Migrations
                     b.ToTable("activities", (string)null);
                 });
 
+            modelBuilder.Entity("TrippieBackend.Models.Model.Airport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("city");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("country");
+
+                    b.Property<string>("IataCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("iata_code");
+
+                    b.Property<decimal>("Latitude")
+                        .HasColumnType("decimal(9,6)")
+                        .HasColumnName("latitude");
+
+                    b.Property<decimal>("Longitude")
+                        .HasColumnType("decimal(9,6)")
+                        .HasColumnName("longitude");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.Property<decimal>("Timezone")
+                        .HasColumnType("decimal(5,2)")
+                        .HasColumnName("timezone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IataCode")
+                        .IsUnique();
+
+                    b.ToTable("airports", (string)null);
+                });
+
             modelBuilder.Entity("TrippieBackend.Models.Model.Favorite", b =>
                 {
                     b.Property<Guid>("Id")
@@ -179,10 +231,9 @@ namespace TrippieBackend.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<string>("ArrivalAirport")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
-                        .HasColumnName("arrival_airport");
+                    b.Property<Guid>("ArrivalAirportId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("arrival_airport_id");
 
                     b.Property<DateTime?>("ArrivalTime")
                         .HasColumnType("timestamp with time zone")
@@ -194,10 +245,9 @@ namespace TrippieBackend.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<string>("DepartureAirport")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
-                        .HasColumnName("departure_airport");
+                    b.Property<Guid>("DepartureAirportId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("departure_airport_id");
 
                     b.Property<DateTime?>("DepartureTime")
                         .HasColumnType("timestamp with time zone")
@@ -224,6 +274,10 @@ namespace TrippieBackend.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ArrivalAirportId");
+
+                    b.HasIndex("DepartureAirportId");
+
                     b.HasIndex("TripId");
 
                     b.ToTable("flights", (string)null);
@@ -234,7 +288,8 @@ namespace TrippieBackend.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<string>("Address")
                         .HasColumnType("text")
@@ -665,12 +720,30 @@ namespace TrippieBackend.Migrations
 
             modelBuilder.Entity("TrippieBackend.Models.Model.Flight", b =>
                 {
+                    b.HasOne("TrippieBackend.Models.Model.Airport", "ArrivalAirport")
+                        .WithMany()
+                        .HasForeignKey("ArrivalAirportId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_flights_arrival_airport");
+
+                    b.HasOne("TrippieBackend.Models.Model.Airport", "DepartureAirport")
+                        .WithMany()
+                        .HasForeignKey("DepartureAirportId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_flights_departure_airport");
+
                     b.HasOne("TrippieBackend.Models.Model.Trip", "Trip")
                         .WithMany()
                         .HasForeignKey("TripId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_flights_trip");
+
+                    b.Navigation("ArrivalAirport");
+
+                    b.Navigation("DepartureAirport");
 
                     b.Navigation("Trip");
                 });
