@@ -1,6 +1,97 @@
 ~~zacat pouzivat uuid ako primarne kluce~~
+
 [] - pri zavreti aplikacie vyslat poslednu polohu do databazy, pri otvorenej aplikacii ju zdielat iba cez sockety
     [] - pri userovi ukazovat online/last seen na zaklade tohto
+
+
+# Trippie API Endpoints
+
+## REST
+
+### Auth
+- [x] `POST /api/auth/register`
+- [x] `POST /api/auth/login`
+- [x] `POST /api/auth/logout`
+- [x] `POST /api/auth/refresh`
+
+### Users
+- [ ] `GET /api/users/me`
+- [ ] `PUT /api/users/me`
+- [ ] `DELETE /api/users/me`
+- [ ] `PATCH /api/users/me/theme`
+- [ ] `PUT /api/users/me/avatar`
+- [ ] `GET /api/users/me/avatar`
+
+### Trips
+- [ ] `GET /api/trips`
+- [ ] `POST /api/trips`
+- [ ] `GET /api/trips/:tripId`
+- [ ] `PATCH /api/trips/:tripId`
+- [ ] `DELETE /api/trips/:tripId`
+- [ ] `PATCH /api/trips/:tripId/status`
+
+### Trip Members
+- [ ] `GET /api/trips/:tripId/members`
+- [ ] `DELETE /api/trips/:tripId/members/:userId`
+- [ ] `DELETE /api/trips/:tripId/members/me`
+
+### Invites
+- [ ] `POST /api/trips/:tripId/invites`
+- [ ] `GET /api/trips/:tripId/invites/:inviteCode/validate`
+- [ ] `POST /api/trips/:tripId/invites/:inviteCode/join`
+
+### Activities
+- [ ] `GET /api/trips/:tripId/activities`
+- [ ] `POST /api/trips/:tripId/activities`
+- [ ] `GET /api/trips/:tripId/activities/:activityId`
+- [ ] `PATCH /api/trips/:tripId/activities/:activityId`
+- [ ] `DELETE /api/trips/:tripId/activities/:activityId`
+
+### Accommodations
+- [ ] `GET /api/trips/:tripId/accommodations`
+- [ ] `POST /api/trips/:tripId/accommodations`
+- [ ] `PATCH /api/trips/:tripId/accommodations/:accommodationId`
+- [ ] `DELETE /api/trips/:tripId/accommodations/:accommodationId`
+
+### Flights
+- [ ] `GET /api/trips/:tripId/flights`
+- [ ] `POST /api/trips/:tripId/flights`
+- [ ] `PATCH /api/trips/:tripId/flights/:flightId`
+- [ ] `DELETE /api/trips/:tripId/flights/:flightId`
+
+### Location
+- [ ] `GET /api/location/trips/:tripId/members`
+
+### Favorites
+- [ ] `GET /api/favorites`
+- [ ] `POST /api/favorites`
+- [ ] `DELETE /api/favorites/:placeId`
+
+### Places
+- [ ] `POST /api/places/resolve`
+- [ ] `GET /api/places/:placeId`
+
+### Airports
+- [ ] `GET /api/airports?search=:query&limit=:n`
+
+---
+
+## WebSocket
+
+### Client → Server
+- [ ] `trip:join_room`
+- [ ] `trip:leave_room`
+- [ ] `location:update`
+
+### Server → Client
+- [ ] `location:member_moved`
+- [ ] `trip:member_joined`
+- [ ] `trip:member_left`
+- [ ] `trip:status_changed`
+- [ ] `activity:created`
+- [ ] `activity:updated`
+- [ ] `activity:deleted`
+- [ ] `invite:used`
 
 # Doporucena folder structure
 ```
@@ -94,92 +185,3 @@ lib/
             └── widgets/
                 └── favorite_place_tile.dart
 ```
-
-# Trippie API Endpoints
-
-## REST
-
-### Auth
-- [ ] `POST /api/auth/register`
-- [ ] `POST /api/auth/login`
-- [ ] `POST /api/auth/logout`
-- [ ] `POST /api/auth/refresh`
-
-### Users
-- [ ] `GET /api/users/me`
-- [ ] `PUT /api/users/me`
-- [ ] `DELETE /api/users/me`
-- [ ] `PATCH /api/users/me/theme`
-- [ ] `PUT /api/users/me/avatar`
-- [ ] `GET /api/users/me/avatar`
-
-### Trips
-- [ ] `GET /api/trips`
-- [ ] `POST /api/trips`
-- [ ] `GET /api/trips/:tripId`
-- [ ] `PATCH /api/trips/:tripId`
-- [ ] `DELETE /api/trips/:tripId`
-- [ ] `PATCH /api/trips/:tripId/status`
-
-### Trip Members
-- [ ] `GET /api/trips/:tripId/members`
-- [ ] `DELETE /api/trips/:tripId/members/:userId`
-- [ ] `DELETE /api/trips/:tripId/members/me`
-
-### Invites
-- [ ] `POST /api/trips/:tripId/invites`
-- [ ] `GET /api/trips/:tripId/invites/:inviteCode/validate`
-- [ ] `POST /api/trips/:tripId/invites/:inviteCode/join`
-
-### Activities
-- [ ] `GET /api/trips/:tripId/activities`
-- [ ] `POST /api/trips/:tripId/activities`
-- [ ] `GET /api/trips/:tripId/activities/:activityId`
-- [ ] `PATCH /api/trips/:tripId/activities/:activityId`
-- [ ] `DELETE /api/trips/:tripId/activities/:activityId`
-
-### Accommodations
-- [ ] `GET /api/trips/:tripId/accommodations`
-- [ ] `POST /api/trips/:tripId/accommodations`
-- [ ] `PATCH /api/trips/:tripId/accommodations/:accommodationId`
-- [ ] `DELETE /api/trips/:tripId/accommodations/:accommodationId`
-
-### Flights
-- [ ] `GET /api/trips/:tripId/flights`
-- [ ] `POST /api/trips/:tripId/flights`
-- [ ] `PATCH /api/trips/:tripId/flights/:flightId`
-- [ ] `DELETE /api/trips/:tripId/flights/:flightId`
-
-### Location
-- [ ] `GET /api/location/trips/:tripId/members`
-
-### Favorites
-- [ ] `GET /api/favorites`
-- [ ] `POST /api/favorites`
-- [ ] `DELETE /api/favorites/:placeId`
-
-### Places
-- [ ] `POST /api/places/resolve`
-- [ ] `GET /api/places/:placeId`
-
-### Airports
-- [ ] `GET /api/airports?search=:query&limit=:n`
-
----
-
-## WebSocket
-
-### Client → Server
-- [ ] `trip:join_room`
-- [ ] `trip:leave_room`
-- [ ] `location:update`
-
-### Server → Client
-- [ ] `location:member_moved`
-- [ ] `trip:member_joined`
-- [ ] `trip:member_left`
-- [ ] `trip:status_changed`
-- [ ] `activity:created`
-- [ ] `activity:updated`
-- [ ] `activity:deleted`
-- [ ] `invite:used`
