@@ -40,10 +40,11 @@ public class Program {
                 // await FavoriteSeeder.SeedAsync(context, cancellationToken);        // → Users, Places
                 // await UserLastLocationSeeder.SeedAsync(context, cancellationToken);// → Users, Trips
             })
-            .UseLoggerFactory(LoggerFactory.Create(b =>
-                b.AddConsole()
-                    .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)
-            )), ServiceLifetime.Transient, ServiceLifetime.Transient
+            // .UseLoggerFactory(LoggerFactory.Create(b =>
+            //     b.AddConsole()
+            //         .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)
+            // ))
+            , ServiceLifetime.Transient, ServiceLifetime.Transient
         );
 
         builder.Services.AddEndpointsApiExplorer();
