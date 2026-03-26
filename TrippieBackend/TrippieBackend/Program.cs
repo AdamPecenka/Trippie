@@ -60,16 +60,17 @@ public class Program {
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             config.IncludeXmlComments(xmlPath);
         });
-
+        
+        
+        
         var utils = new Utils();
         string localIpAddress = utils.GetLocalIpAdress();
+
         builder.WebHost.ConfigureKestrel(options => {
-            options.Listen(System.Net.IPAddress.Parse(localIpAddress), 5001);
-            options.Listen(System.Net.IPAddress.Parse(localIpAddress), 5002, listenOptions => {
+            options.Listen(System.Net.IPAddress.Parse(localIpAddress), 5001, listenOptions => {
                 listenOptions.UseHttps();
             });
-            options.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5003);
-            options.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5004, listenOptions => {
+            options.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5002, listenOptions => {
                 listenOptions.UseHttps();
             });
         });
