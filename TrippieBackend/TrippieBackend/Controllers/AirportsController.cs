@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TrippieBackend.Models.DTOs;
 using TrippieBackend.Services.IService;
 
 namespace TrippieBackend.Controllers;
@@ -15,14 +16,14 @@ public class AirportsController : ControllerBase
     }
     
     /// <summary>Search airports by name, city, country or IATA code.</summary>
-    /// <remarks>Example: GET /api/airports?search=vienna&amp;limit=5</remarks>
+    /// <code>Example: GET /api/airports?search=vienna&amp;limit=5</code>
     /// <param name="search">Search query string</param>
     /// <param name="limit">Max number of results to return (default: 10)</param>
     /// <returns>List of matching airports</returns>
     [HttpGet]
-    public async Task<IActionResult> Search([FromQuery] string search, [FromQuery] int limit = 10)
+    public async Task<IActionResult> Search([FromQuery] AirportSearchRequestDto searchRequest)
     {
-        var result = await _airportService.Search(search, limit);
+        var result = await _airportService.Search(searchRequest.Search, searchRequest.Limit);
         return Ok(result);
     }
 }

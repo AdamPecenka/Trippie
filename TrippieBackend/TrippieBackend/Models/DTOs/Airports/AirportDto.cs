@@ -7,7 +7,7 @@ public class AirportDto
     public string City { get; init; }
     public string Country { get; init; }
     public string IataCode { get; init; }
-    public decimal Latitude { get; init; }
-    public decimal Longitude { get; init; }
+    public double Latitude { get; init; }
+    public double Longitude { get; init; }
     public decimal Timezone { get; init; }
 }

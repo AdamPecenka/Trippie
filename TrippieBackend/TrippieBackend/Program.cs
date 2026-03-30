@@ -14,7 +14,7 @@ using TrippieBackend.Services;
 using TrippieBackend.Seeds;
 
 namespace TrippieBackend;
-                                                            
+
 public class Program {
     public static async Task Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
@@ -34,7 +34,7 @@ public class Program {
             .UseAsyncSeeding(async (context, _, cancellationToken) =>
             {
                 await AirportSeeder.SeedAsync(context, cancellationToken);         // no deps
-                // await PlaceSeeder.SeedAsync(context, cancellationToken);        // no deps
+                await PlaceSeeder.SeedAsync(context, cancellationToken);           // no deps
                 await UserSeeder.SeedAsync(context, cancellationToken);            // no deps
                 // await TripSeeder.SeedAsync(context, cancellationToken);            // → Users, Places
                 // await TripMemberSeeder.SeedAsync(context, cancellationToken);      // → Trips, Users
@@ -119,13 +119,13 @@ public class Program {
             options.AddPolicy("SignalRPolicy", policy =>
             {
                 policy
-                    .WithOrigins(["https://127.0.0.1:*", $"https://{localIpAddress}:*"]) // adjust for prod
+                    .WithOrigins(["https://127.0.0.1:*", $"https://{localIpAddress}:*"])
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials(); // required for SignalR
             });
         });
-        
+        builder.Services.AddHttpClient();
         builder.Services.AddServices();
 
 
@@ -133,12 +133,13 @@ public class Program {
         // Middleware pipeline
         var app = builder.Build();
 
-        using (var scope = app.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<TrippieContext>();
-            // await db.Database.MigrateAsync();
-            // await db.Database.EnsureCreatedAsync();
-        }
+        // Uncomment this only when you want to seed or migrate, otherwise leave commented
+        // using (var scope = app.Services.CreateScope())
+        // {
+        //     var db = scope.ServiceProvider.GetRequiredService<TrippieContext>();
+        //     await db.Database.MigrateAsync();
+        //     await db.Database.EnsureCreatedAsync();
+        // }
         
         app.Use(async (ctx, next) =>
         {
@@ -155,7 +156,7 @@ public class Program {
                 {
                     Status = "error",
                     Code = 500,
-                    Message = "Internal server error."
+                    Message = "[!] Internal server error. Check console for more information."
                 }));
             }
         });

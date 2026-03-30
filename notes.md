@@ -1,15 +1,5 @@
-~~zacat pouzivat uuid ako primarne kluce~~
-
 [] - pri zavreti aplikacie vyslat poslednu polohu do databazy, pri otvorenej aplikacii ju zdielat iba cez sockety
     [] - pri userovi ukazovat online/last seen na zaklade tohto
-
-[x] - implementovat error object ako sucast response z api
-    - ErrorDto{
-        - status
-        - code
-        - message
-        - field?
-    }
 
 # Trippie API Endpoints
 
@@ -59,23 +49,24 @@
 - [ ] `PATCH /api/trips/:tripId/accommodations/:accommodationId` -> socketom update u ostatnych clenov tripu
 ~~- [ ] `DELETE /api/trips/:tripId/accommodations/:accommodationId`~~
 
-### Flights
+### Flights                    - Johannka
 - [ ] `GET /api/trips/:tripId/flights`
 - [ ] `POST /api/trips/:tripId/flights`     
 - [ ] `PATCH /api/trips/:tripId/flights/:flightId`
 - [ ] `DELETE /api/trips/:tripId/flights/:flightId`
 
 ### Location
-- [ ] `POST /api/location/trips/:tripId/me` -> Moja posledna lokacia pred odpojenim, inak cez sockety
+- [ ] `POST /api/location/trips/:tripId/me` -> Moja posledna lokacia pred odpojenim, inak cez socket y
 
 ### Favorites
-- [ ] `GET /api/favorites` 
-- [ ] `POST /api/favorites` -> Socketom pre UserId
-- [ ] `DELETE /api/favorites/:placeId`-> Socketom pre UserId
+- [ ] `GET /api/favorites`                     - Johannka
+- [ ] `POST /api/favorites` -> Socketom pre UserId                     - Johannka
+- [ ] `DELETE /api/favorites/:placeId`-> Socketom pre UserId                    - Johannka
 
 ### Places
-- [ ] `POST /api/places/resolve` 
-- [ ] `GET /api/places/:placeId`
+- [x] `POST /api/places/resolve`
+- [x] `GET /api/places/search?query=_&lat=_&lng=_`
+- [ ] `GET /api/places/:placeId`                    - Johannka
 
 ### Airports
 - [x] `GET /api/airports?search=:query&limit=:n`
@@ -191,3 +182,19 @@ lib/
             └── widgets/
                 └── favorite_place_tile.dart
 ```
+
+user types "Sagra..."
+    → GET /api/places/search?query=Sagra
+    → your backend calls Google autocomplete
+    → returns list of suggestions (just google_place_id + display name, nothing stored)
+
+user types "Sagrada..."
+    → GET /api/places/search?query=Sagrada
+    → same, nothing stored
+
+user taps "Sagrada Família"
+    → POST /api/places/resolve { "googlePlaceId": "ChIJ..." }
+    → your backend calls Google for full details
+    → stores in Places table if not already there
+    → returns your internal Place with your UUID
+    → that UUID is what gets saved on the Activity

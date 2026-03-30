@@ -87,8 +87,8 @@ public class TrippieContext : DbContext
             entity.Property(p => p.Address).HasColumnName("address");
             entity.Property(p => p.City).HasColumnName("city").HasMaxLength(255);
             entity.Property(p => p.Country).HasColumnName("country").HasMaxLength(255);
-            entity.Property(p => p.Latitude).HasColumnName("latitude").HasColumnType("decimal(9,6)").IsRequired();
-            entity.Property(p => p.Longitude).HasColumnName("longitude").HasColumnType("decimal(9,6)").IsRequired();
+            entity.Property(p => p.Latitude).HasColumnName("latitude").HasColumnType("double precision").IsRequired();
+            entity.Property(p => p.Longitude).HasColumnName("longitude").HasColumnType("double precision").IsRequired();
             entity.Property(p => p.GooglePlaceId).HasColumnName("google_place_id").HasMaxLength(255);
             entity.Property(p => p.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("now()");
             entity.Property(p => p.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("now()");
@@ -260,8 +260,8 @@ public class TrippieContext : DbContext
  
             entity.Property(ull => ull.UserId).HasColumnName("user_id");
             entity.Property(ull => ull.TripId).HasColumnName("trip_id");
-            entity.Property(ull => ull.Latitude).HasColumnName("latitude").HasColumnType("decimal(9,6)");
-            entity.Property(ull => ull.Longitude).HasColumnName("longitude").HasColumnType("decimal(9,6)");
+            entity.Property(ull => ull.Latitude).HasColumnName("latitude").HasColumnType("double precision");
+            entity.Property(ull => ull.Longitude).HasColumnName("longitude").HasColumnType("double precision");
             entity.Property(ull => ull.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("now()");
             entity.Property(ull => ull.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("now()");
  
@@ -351,8 +351,8 @@ public class TrippieContext : DbContext
             e.Property(a => a.City).HasColumnName("city").HasMaxLength(255).IsRequired();
             e.Property(a => a.Country).HasColumnName("country").HasMaxLength(255).IsRequired();
             e.Property(a => a.IataCode).HasColumnName("iata_code").HasMaxLength(3).IsRequired();
-            e.Property(a => a.Latitude).HasColumnName("latitude").HasColumnType("decimal(9,6)").IsRequired();
-            e.Property(a => a.Longitude).HasColumnName("longitude").HasColumnType("decimal(9,6)").IsRequired();
+            e.Property(a => a.Latitude).HasColumnName("latitude").HasColumnType("double precision").IsRequired();
+            e.Property(a => a.Longitude).HasColumnName("longitude").HasColumnType("double precision").IsRequired();
             e.Property(a => a.Timezone).HasColumnName("timezone").HasColumnType("decimal(5,2)").IsRequired();
 
             e.HasIndex(a => a.IataCode).IsUnique();
