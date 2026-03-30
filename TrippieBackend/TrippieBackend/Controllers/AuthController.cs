@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TrippieBackend.Models;
 using TrippieBackend.Models.DTOs;
-using TrippieBackend.Models.Enums;
 using TrippieBackend.Services.IService;
 
 namespace TrippieBackend.Controllers;
