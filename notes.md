@@ -78,7 +78,7 @@
 - [ ] `GET /api/places/:placeId`
 
 ### Airports
-- [ ] `GET /api/airports?search=:query&limit=:n`
+- [x] `GET /api/airports?search=:query&limit=:n`
 
 ---
 
