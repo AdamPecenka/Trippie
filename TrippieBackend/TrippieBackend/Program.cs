@@ -64,9 +64,12 @@ public class Program {
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             config.IncludeXmlComments(xmlPath);
         });
-
+        
+        
+        
         var utils = new Utils();
         string localIpAddress = utils.GetLocalIpAdress();
+
         builder.WebHost.ConfigureKestrel(options => {
             options.Listen(System.Net.IPAddress.Parse(localIpAddress), 5001, listenOptions => {
                 listenOptions.UseHttps();
