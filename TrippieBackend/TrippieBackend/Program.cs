@@ -4,7 +4,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Reflection;
 using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using TrippieBackend.Common;
+using TrippieBackend.Hubs;
 using TrippieBackend.Models;
 using TrippieBackend.Models.Enums;
 using TrippieBackend.Services;
@@ -17,6 +19,8 @@ public class Program {
         var builder = WebApplication.CreateBuilder(args);
         
         builder.Services.AddControllers();
+        
+        builder.Services.AddSignalR();
 
         builder.Services.AddDbContext<TrippieContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("TrippieConnectionString"), o => 
@@ -64,12 +68,10 @@ public class Program {
         var utils = new Utils();
         string localIpAddress = utils.GetLocalIpAdress();
         builder.WebHost.ConfigureKestrel(options => {
-            options.Listen(System.Net.IPAddress.Parse(localIpAddress), 5001);
-            options.Listen(System.Net.IPAddress.Parse(localIpAddress), 5002, listenOptions => {
+            options.Listen(System.Net.IPAddress.Parse(localIpAddress), 5001, listenOptions => {
                 listenOptions.UseHttps();
             });
-            options.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5003);
-            options.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5004, listenOptions => {
+            options.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5002, listenOptions => {
                 listenOptions.UseHttps();
             });
         });
@@ -85,6 +87,21 @@ public class Program {
                     ValidAudience = builder.Configuration["Auth:JwtAudience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Auth:JwtSecretKey"]))
                 };
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
         builder.Services.AddAuthorization(options => {
@@ -93,6 +110,18 @@ public class Program {
                 .Build();
         });
 
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("SignalRPolicy", policy =>
+            {
+                policy
+                    .WithOrigins(["https://127.0.0.1:*", $"https://{localIpAddress}:*"]) // adjust for prod
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials(); // required for SignalR
+            });
+        });
+        
         builder.Services.AddServices();
 
 
@@ -118,6 +147,9 @@ public class Program {
 
         app.UseAuthorization();
 
+        app.UseCors("SignalRPolicy");
+        app.MapHub<TripHub>("hubs/trip");
+        
         app.MapControllers();
 
         app.Run();

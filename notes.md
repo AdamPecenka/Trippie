@@ -3,6 +3,14 @@
 [] - pri zavreti aplikacie vyslat poslednu polohu do databazy, pri otvorenej aplikacii ju zdielat iba cez sockety
     [] - pri userovi ukazovat online/last seen na zaklade tohto
 
+- implementovat error object ako sucast response z api
+    - ErrorDto{
+        - status
+        - code
+        - message
+        - field?
+    }
+
 
 # Trippie API Endpoints
 
@@ -16,59 +24,58 @@
 
 ### Users
 - [ ] `GET /api/users/me`
-- [ ] `PUT /api/users/me`
-- [ ] `DELETE /api/users/me`
-- [ ] `PATCH /api/users/me/theme`
-- [ ] `PUT /api/users/me/avatar`
+- [ ] `PUT /api/users/me` -> socketom update u ostatnych userov
+- [ ] `DELETE /api/users/me` -> socketom update u ostatnych userov
+- [ ] `PATCH /api/users/me/theme` 
+- [ ] `PUT /api/users/me/avatar` -> socketom update u ostatnych userov
 - [ ] `GET /api/users/me/avatar`
 
 ### Trips
-- [ ] `GET /api/trips`
-- [ ] `POST /api/trips`
+- [ ] `GET /api/trips` 
+- [ ] `POST /api/trips` 
 - [ ] `GET /api/trips/:tripId`
 - [ ] `PATCH /api/trips/:tripId`
-- [ ] `DELETE /api/trips/:tripId`
-- [ ] `PATCH /api/trips/:tripId/status`
+~~- [ ] `DELETE /api/trips/:tripId`~~
+- [ ] `PATCH /api/trips/:tripId/status` -> socketom update u ostatnych clenov tripu
 
 ### Trip Members
 - [ ] `GET /api/trips/:tripId/members`
-- [ ] `DELETE /api/trips/:tripId/members/:userId`
-- [ ] `DELETE /api/trips/:tripId/members/me`
+- [ ] `DELETE /api/trips/:tripId/members/me` -> socketom update u ostatnych clenov tripu
 
 ### Invites
-- [ ] `POST /api/trips/:tripId/invites`
+- [ ] `POST /api/trips/:tripId/invites` -> Socketom poslat invite
 - [ ] `GET /api/trips/:tripId/invites/:inviteCode/validate`
-- [ ] `POST /api/trips/:tripId/invites/:inviteCode/join`
+- [ ] `POST /api/trips/:tripId/invites/:inviteCode/join` -> Socketom pridat do tripu, updatnut u vsetkych clenoch
 
 ### Activities
 - [ ] `GET /api/trips/:tripId/activities`
-- [ ] `POST /api/trips/:tripId/activities`
-- [ ] `GET /api/trips/:tripId/activities/:activityId`
-- [ ] `PATCH /api/trips/:tripId/activities/:activityId`
-- [ ] `DELETE /api/trips/:tripId/activities/:activityId`
+- [ ] `POST /api/trips/:tripId/activities` -> socketom update u ostatnych clenov tripu
+- [ ] `GET /api/trips/:tripId/activities/:activityId` 
+- [ ] `PATCH /api/trips/:tripId/activities/:activityId` -> socketom update u ostatnych clenov tripu
+- [ ] `DELETE /api/trips/:tripId/activities/:activityId` -> socketom update u ostatnych clenov tripu
 
 ### Accommodations
 - [ ] `GET /api/trips/:tripId/accommodations`
-- [ ] `POST /api/trips/:tripId/accommodations`
-- [ ] `PATCH /api/trips/:tripId/accommodations/:accommodationId`
-- [ ] `DELETE /api/trips/:tripId/accommodations/:accommodationId`
+- [ ] `POST /api/trips/:tripId/accommodations` 
+- [ ] `PATCH /api/trips/:tripId/accommodations/:accommodationId` -> socketom update u ostatnych clenov tripu
+~~- [ ] `DELETE /api/trips/:tripId/accommodations/:accommodationId`~~
 
 ### Flights
 - [ ] `GET /api/trips/:tripId/flights`
-- [ ] `POST /api/trips/:tripId/flights`
+- [ ] `POST /api/trips/:tripId/flights`     
 - [ ] `PATCH /api/trips/:tripId/flights/:flightId`
 - [ ] `DELETE /api/trips/:tripId/flights/:flightId`
 
 ### Location
-- [ ] `GET /api/location/trips/:tripId/members`
+- [ ] `POST /api/location/trips/:tripId/me` -> Moja posledna lokacia pred odpojenim, inak cez sockety
 
 ### Favorites
-- [ ] `GET /api/favorites`
-- [ ] `POST /api/favorites`
-- [ ] `DELETE /api/favorites/:placeId`
+- [ ] `GET /api/favorites` 
+- [ ] `POST /api/favorites` -> Socketom pre UserId
+- [ ] `DELETE /api/favorites/:placeId`-> Socketom pre UserId
 
 ### Places
-- [ ] `POST /api/places/resolve`
+- [ ] `POST /api/places/resolve` 
 - [ ] `GET /api/places/:placeId`
 
 ### Airports
