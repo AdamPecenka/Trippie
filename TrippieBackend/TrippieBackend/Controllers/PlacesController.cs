@@ -17,6 +17,11 @@ public class PlacesController : ControllerBase
         _placeService = placeService;
     }
     
+    /// <summary>Autocomplete place search using Google Places API.</summary>
+    /// <param name="searchRequest">Search query with optional lat/lng bias</param>
+    /// <returns>List of place suggestions with Google Place ID and display name</returns>
+    /// <response code="200">List of suggestions returned successfully</response>
+    /// <response code="400">Only one of Latitude or Longitude was provided</response>
     [HttpGet("search")]
     public async Task<IActionResult> Autocomplete([FromQuery] PlacesSearchRequestDto searchRequest)
     {
@@ -35,6 +40,11 @@ public class PlacesController : ControllerBase
         return Ok(ApiResponse<List<PlaceSuggestionDto>>.Success(result.Value!));
     }
 
+    /// <summary>Resolve a Google Place ID into a stored Place entity.</summary>
+    /// <param name="resolveRequest">Google Place ID to resolve</param>
+    /// <returns>Internal Place object stored in the database</returns>
+    /// <response code="200">Place resolved and returned successfully</response>
+    /// <response code="404">Google Place ID not found</response>
     [HttpPost("resolve")]
     public async Task<IActionResult> Resolve([FromBody] PlaceResolveRequestDto resolveRequest)
     {
