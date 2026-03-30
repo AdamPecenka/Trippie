@@ -35,8 +35,8 @@ public static class AirportSeeder
             var cols = ParseCsvLine(line);
             if (cols.Length < 9) { skipped++; continue; }
 
-            if (!decimal.TryParse(cols[5], NumberStyles.Any, CultureInfo.InvariantCulture, out var lat) ||
-                !decimal.TryParse(cols[6], NumberStyles.Any, CultureInfo.InvariantCulture, out var lon))
+            if (!double.TryParse(cols[5], NumberStyles.Any, CultureInfo.InvariantCulture, out var lat) ||
+                !double.TryParse(cols[6], NumberStyles.Any, CultureInfo.InvariantCulture, out var lon))
             {
                 Console.WriteLine($"[E] Failed to parse lat/lon: {line[..Math.Min(60, line.Length)]}");
                 skipped++;

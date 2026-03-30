@@ -7,7 +7,7 @@ public class Airport
     public string City { get; set; } = null!;
     public string Country { get; set; } = null!;
     public string IataCode { get; set; } = null!;
-    public decimal Latitude { get; set; }
-    public decimal Longitude { get; set; }
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
     public decimal Timezone { get; set; }
 }

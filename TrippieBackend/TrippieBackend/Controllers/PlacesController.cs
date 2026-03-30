@@ -1,0 +1,56 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using TrippieBackend.Models;
+using TrippieBackend.Models.DTOs;
+using TrippieBackend.Models.Enums;
+using TrippieBackend.Services.IService;
+
+namespace TrippieBackend.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class PlacesController : ControllerBase
+{
+    private readonly IPlaceService _placeService;
+
+    public PlacesController(IPlaceService placeService)
+    {
+        _placeService = placeService;
+    }
+    
+    [HttpGet("search")]
+    public async Task<IActionResult> Autocomplete([FromQuery] PlacesSearchRequestDto searchRequest)
+    {
+        if (searchRequest.Latitude.HasValue != searchRequest.Longitude.HasValue)
+        {
+            return StatusCode(400, ApiResponse<object>.Failure(new ErrorDto
+            {
+                Status = "error",
+                Code = 400,
+                Message = AppErrorEnum.Places_Autocomplete_Lat_Or_Lng_Not_Provided.ToString(),
+                Field = null
+            }));
+        }
+        
+        var result = await _placeService.Autocomplete(searchRequest.Query, searchRequest.Latitude, searchRequest.Longitude);
+        return Ok(ApiResponse<List<PlaceSuggestionDto>>.Success(result.Value!));
+    }
+
+    [HttpPost("resolve")]
+    public async Task<IActionResult> Resolve([FromBody] PlaceResolveRequestDto resolveRequest)
+    {
+        var result = await _placeService.Resolve(resolveRequest.GooglePlaceId);
+        
+        if (!result.IsSuccess)
+        {
+            return StatusCode(result.Code, ApiResponse<object>.Failure(new ErrorDto
+            {
+                Status = "error",
+                Code = result.Code,
+                Message = result.Error!,
+                Field = result.Field
+            }));
+        }
+
+        return Ok(ApiResponse<PlaceDto>.Success(result.Value!));
+    }
+}

@@ -1,11 +1,16 @@
-﻿namespace TrippieBackend.Models.Enums;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace TrippieBackend.Models.Enums;
+
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public enum AppErrorEnum
 {
-    EmailAlreadyExists,
-    PhoneAlreadyExists,
-    InvalidCredentials,
-    InvalidRefreshToken,
-    RefreshTokenExpired,
-    RefreshTokenRevoked
+    Email_Already_Exists,
+    Phone_Already_Exists,
+    Invalid_Credentials,
+    Invalid_Refresh_Token,
+    Refresh_Token_Expired,
+    Refresh_Token_Revoked,
+    Places_Autocomplete_Lat_Or_Lng_Not_Provided,
+    Place_Not_Found
 }

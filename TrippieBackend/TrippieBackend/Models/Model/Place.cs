@@ -15,8 +15,8 @@ public class Place
     
     public string? Country { get; set; }
 
-    public decimal Latitude { get; set; }
-    public decimal Longitude { get; set; }
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
 
     public string? GooglePlaceId { get; set; }
 

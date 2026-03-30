@@ -29,13 +29,13 @@ public class AuthService : IAuthService
 
         if (user == null)
         {
-            return ServiceResult<AuthResponseDto>.Fail(401, AppErrorEnum.InvalidCredentials.ToString());
+            return ServiceResult<AuthResponseDto>.Fail(401, AppErrorEnum.Invalid_Credentials.ToString());
         }
 
         bool isValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
         if (!isValid)
         {
-            return ServiceResult<AuthResponseDto>.Fail(401, AppErrorEnum.InvalidCredentials.ToString());
+            return ServiceResult<AuthResponseDto>.Fail(401, AppErrorEnum.Invalid_Credentials.ToString());
         }
 
         var existingToken = await _context.RefreshTokens
@@ -75,13 +75,13 @@ public class AuthService : IAuthService
         if (await _context.Users.AnyAsync(x => x.Email == registerRequestDto.Email))
         {
             return ServiceResult<AuthResponseDto>
-                .Fail(409, AppErrorEnum.EmailAlreadyExists.ToString(), nameof(User.Email));
+                .Fail(409, AppErrorEnum.Email_Already_Exists.ToString(), nameof(User.Email));
         }
 
         if (await _context.Users.AnyAsync(x => x.PhoneNumber == registerRequestDto.PhoneNumber))
         {
             return ServiceResult<AuthResponseDto>
-                .Fail(409, AppErrorEnum.PhoneAlreadyExists.ToString(), nameof(User.PhoneNumber));
+                .Fail(409, AppErrorEnum.Phone_Already_Exists.ToString(), nameof(User.PhoneNumber));
         }
 
         User newUser = new()
@@ -127,14 +127,14 @@ public class AuthService : IAuthService
 
         if (storedRefreshToken == null)
         {
-            return ServiceResult<RefreshResponseDto>.Fail(401, AppErrorEnum.InvalidRefreshToken.ToString());
+            return ServiceResult<RefreshResponseDto>.Fail(401, AppErrorEnum.Invalid_Refresh_Token.ToString());
         }
 
         if (storedRefreshToken.ExpiresAt < DateTime.UtcNow)
         {
             storedRefreshToken.Revoked = true;
             await _context.SaveChangesAsync();
-            return ServiceResult<RefreshResponseDto>.Fail(401, AppErrorEnum.RefreshTokenExpired.ToString());
+            return ServiceResult<RefreshResponseDto>.Fail(401, AppErrorEnum.Refresh_Token_Expired.ToString());
         }
 
         storedRefreshToken.Revoked = true;
@@ -159,7 +159,7 @@ public class AuthService : IAuthService
 
         if (storedToken == null)
         {
-            return ServiceResult<bool>.Fail(401, AppErrorEnum.InvalidRefreshToken.ToString());
+            return ServiceResult<bool>.Fail(401, AppErrorEnum.Invalid_Refresh_Token.ToString());
         }
         
         if (storedToken.Revoked == true)
@@ -175,7 +175,7 @@ public class AuthService : IAuthService
             }
     
             await _context.SaveChangesAsync();
-            return ServiceResult<bool>.Fail(401, AppErrorEnum.RefreshTokenRevoked.ToString());
+            return ServiceResult<bool>.Fail(401, AppErrorEnum.Refresh_Token_Revoked.ToString());
         }
 
         storedToken.Revoked = true;
