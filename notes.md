@@ -3,14 +3,13 @@
 [] - pri zavreti aplikacie vyslat poslednu polohu do databazy, pri otvorenej aplikacii ju zdielat iba cez sockety
     [] - pri userovi ukazovat online/last seen na zaklade tohto
 
-- implementovat error object ako sucast response z api
+[x] - implementovat error object ako sucast response z api
     - ErrorDto{
         - status
         - code
         - message
         - field?
     }
-
 
 # Trippie API Endpoints
 

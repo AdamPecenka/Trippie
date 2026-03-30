@@ -23,19 +23,19 @@ public class AuthService : IAuthService
         _configuration = configuration;
     }
 
-    public async Task<(AuthResponseDto? authResponseDto, AppErrorEnum? error)> Login(string email, string password)
+    public async Task<ServiceResult<AuthResponseDto>> Login(string email, string password)
     {
         User? user = await _context.Users.SingleOrDefaultAsync(x => x.Email == email);
 
         if (user == null)
         {
-            return (null, AppErrorEnum.InvalidCredentials);
+            return ServiceResult<AuthResponseDto>.Fail(401, AppErrorEnum.InvalidCredentials.ToString());
         }
 
         bool isValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
         if (!isValid)
         {
-            return (null, AppErrorEnum.InvalidCredentials);
+            return ServiceResult<AuthResponseDto>.Fail(401, AppErrorEnum.InvalidCredentials.ToString());
         }
 
         var existingToken = await _context.RefreshTokens
@@ -66,20 +66,22 @@ public class AuthService : IAuthService
             RefreshToken = refreshToken.TokenValue,
         };
 
-        return (authResponseDto, null);
+        return ServiceResult<AuthResponseDto>.Ok(authResponseDto);
     }
 
-    public async Task<(AuthResponseDto? authResponseDto, AppErrorEnum? error)> RegisterNewUser(
+    public async Task<ServiceResult<AuthResponseDto>> RegisterNewUser(
         RegisterRequestDto registerRequestDto)
     {
         if (await _context.Users.AnyAsync(x => x.Email == registerRequestDto.Email))
         {
-            return (null, AppErrorEnum.EmailAlreadyExists);
+            return ServiceResult<AuthResponseDto>
+                .Fail(409, AppErrorEnum.EmailAlreadyExists.ToString(), nameof(User.Email));
         }
 
         if (await _context.Users.AnyAsync(x => x.PhoneNumber == registerRequestDto.PhoneNumber))
         {
-            return (null, AppErrorEnum.PhoneAlreadyExists);
+            return ServiceResult<AuthResponseDto>
+                .Fail(409, AppErrorEnum.PhoneAlreadyExists.ToString(), nameof(User.PhoneNumber));
         }
 
         User newUser = new()
@@ -114,10 +116,10 @@ public class AuthService : IAuthService
             RefreshToken = refreshToken.TokenValue,
         };
 
-        return (authResponseDto, null);
+        return ServiceResult<AuthResponseDto>.Ok(authResponseDto);
     }
 
-    public async Task<(RefreshResponseDto? refreshResponseDto, AppErrorEnum? error)> RefreshTokens(string refreshTokenValue)
+    public async Task<ServiceResult<RefreshResponseDto>> RefreshTokens(string refreshTokenValue)
     {
         var storedRefreshToken = await _context.RefreshTokens
             .Include(x => x.User)
@@ -125,14 +127,14 @@ public class AuthService : IAuthService
 
         if (storedRefreshToken == null)
         {
-            return (null, AppErrorEnum.InvalidRefreshToken);
+            return ServiceResult<RefreshResponseDto>.Fail(401, AppErrorEnum.InvalidRefreshToken.ToString());
         }
 
         if (storedRefreshToken.ExpiresAt < DateTime.UtcNow)
         {
             storedRefreshToken.Revoked = true;
             await _context.SaveChangesAsync();
-            return (null, AppErrorEnum.RefreshTokenExpired);
+            return ServiceResult<RefreshResponseDto>.Fail(401, AppErrorEnum.RefreshTokenExpired.ToString());
         }
 
         storedRefreshToken.Revoked = true;
@@ -147,17 +149,17 @@ public class AuthService : IAuthService
             RefreshToken = newRefreshToken.TokenValue
         };
 
-        return (refreshResponseDto, null);
+        return ServiceResult<RefreshResponseDto>.Ok(refreshResponseDto);
     }
 
-    public async Task<AppErrorEnum?> Logout(string refreshTokenValue)
+    public async Task<ServiceResult<bool>> Logout(string refreshTokenValue)
     {
         var storedToken = await _context.RefreshTokens
             .SingleOrDefaultAsync(x => x.TokenValue == refreshTokenValue);
 
         if (storedToken == null)
         {
-            return AppErrorEnum.InvalidRefreshToken;
+            return ServiceResult<bool>.Fail(401, AppErrorEnum.InvalidRefreshToken.ToString());
         }
         
         if (storedToken.Revoked == true)
@@ -173,14 +175,14 @@ public class AuthService : IAuthService
             }
     
             await _context.SaveChangesAsync();
-            return AppErrorEnum.RefreshTokenRevoked;
+            return ServiceResult<bool>.Fail(401, AppErrorEnum.RefreshTokenRevoked.ToString());
         }
 
         storedToken.Revoked = true;
         storedToken.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
-        return null;
+        return ServiceResult<bool>.Ok(true);
     } 
     
     

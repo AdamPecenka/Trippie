@@ -26,19 +26,20 @@ public class AuthController: ControllerBase {
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
     {
-        var (result, error) = await _authService.Login(loginRequestDto.Email, loginRequestDto.Password);
+        var result = await _authService.Login(loginRequestDto.Email, loginRequestDto.Password);
 
-        if (error != null)
+        if (!result.IsSuccess)
         {
-            if (error == AppErrorEnum.InvalidCredentials)
+            return StatusCode(result.Code, ApiResponse<object>.Failure(new ErrorDto
             {
-                return Unauthorized(ApiResponse<object>.Failure(error.ToString(), "Incorrect email or password"));
-            }
-            
-            return StatusCode(500, ApiResponse<object>.Failure("InternalServerError", "Unexpected error"));
+                Status = "error",
+                Code = result.Code,
+                Message = result.Error!,
+                Field = result.Field
+            }));
         }
-        
-        return Ok(ApiResponse<AuthResponseDto>.Success(result!));
+
+        return Ok(ApiResponse<AuthResponseDto>.Success(result.Value!));
     }
     
     
@@ -51,24 +52,20 @@ public class AuthController: ControllerBase {
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto refreshRequestDto)
     {
-        var (result, error) = await _authService.RefreshTokens(refreshRequestDto.RefreshToken);
+        var result = await _authService.RefreshTokens(refreshRequestDto.RefreshToken);
 
-        if (error != null)
+        if (!result.IsSuccess)
         {
-            if (error == AppErrorEnum.InvalidRefreshToken)
+            return StatusCode(result.Code, ApiResponse<object>.Failure(new ErrorDto
             {
-                return Unauthorized(ApiResponse<object>.Failure(error.ToString(), "Invalid refresh token"));
-            }
-
-            if (error == AppErrorEnum.RefreshTokenExpired)
-            {
-                return Unauthorized(ApiResponse<object>.Failure(error.ToString(), "Refresh token expired"));
-            }
-
-            return StatusCode(500, ApiResponse<object>.Failure("InternalServerError", "Unexpected error"));
+                Status = "error",
+                Code = result.Code,
+                Message = result.Error!,
+                Field = result.Field
+            }));
         }
 
-        return Ok(ApiResponse<RefreshResponseDto>.Success(result!));
+        return Ok(ApiResponse<RefreshResponseDto>.Success(result.Value!));
     }
     
     
@@ -76,29 +73,25 @@ public class AuthController: ControllerBase {
     /// <param name="registerRequestDto">User registration details</param>
     /// <returns>User data with access and refresh tokens</returns>
     /// <response code="200">Registration successful</response>
-    /// <response code="400">Validation failed</response>
     /// <response code="409">Email or phone number already in use</response>
     [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto registerRequestDto)
     {
-        var (result, error) = await _authService.RegisterNewUser(registerRequestDto);
-        
-        if (error != null)
+        var result = await _authService.RegisterNewUser(registerRequestDto);
+
+        if (!result.IsSuccess)
         {
-            if (error == AppErrorEnum.EmailAlreadyExists)
+            return StatusCode(result.Code, ApiResponse<object>.Failure(new ErrorDto
             {
-                return Conflict(ApiResponse<object>.Failure(error.ToString(), "Email already in use"));
-            }
-            if (error == AppErrorEnum.PhoneAlreadyExists)
-            {
-                return Conflict(ApiResponse<object>.Failure(error.ToString(), "Phone number already in use"));
-            }
-            
-            return StatusCode(500, ApiResponse<object>.Failure("InternalServerError", "Unexpected error"));
+                Status = "error",
+                Code = result.Code,
+                Message = result.Error!,
+                Field = result.Field
+            }));
         }
-        
-        return Ok(ApiResponse<AuthResponseDto>.Success(result!));
+
+        return Ok(ApiResponse<AuthResponseDto>.Success(result.Value!));
     }
     
     
@@ -110,21 +103,17 @@ public class AuthController: ControllerBase {
     [HttpPost("logout")]
     public async Task<IActionResult> Logout([FromBody] RefreshRequestDto refreshRequestDto)
     {
-        var error = await _authService.Logout(refreshRequestDto.RefreshToken);
+        var result = await _authService.Logout(refreshRequestDto.RefreshToken);
 
-        if (error != null)
+        if (!result.IsSuccess)
         {
-            if (error == AppErrorEnum.InvalidRefreshToken)
+            return StatusCode(result.Code, ApiResponse<object>.Failure(new ErrorDto
             {
-                Console.WriteLine("[!]  Refresh token is invalid");
-                return Unauthorized(ApiResponse<object>.Failure(error.ToString(), "Invalid refresh token"));
-            }
-            if (error == AppErrorEnum.RefreshTokenRevoked)
-            {
-                return Unauthorized(ApiResponse<object>.Failure(error.ToString(), "Refresh token already revoked, possibility of theft!"));
-            } 
-            
-            return StatusCode(500, ApiResponse<object>.Failure("InternalServerError", "Unexpected error"));
+                Status = "error",
+                Code = result.Code,
+                Message = result.Error!,
+                Field = result.Field
+            }));
         }
 
         return NoContent();
