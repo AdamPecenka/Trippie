@@ -1,10 +1,11 @@
-﻿namespace TrippieBackend.Models;
+﻿using TrippieBackend.Models.DTOs;
+
+namespace TrippieBackend.Models;
 
 public class ApiResponse<T>
 {
     public T? Data { get; set; }
-    public string? Error { get; set; }
-    public string? Message { get; set; }
+    public ErrorDto? Error { get; set; }
 
     public static ApiResponse<T> Success(T data)
     {
@@ -14,12 +15,11 @@ public class ApiResponse<T>
         };
     }
 
-    public static ApiResponse<T> Failure(string error, string message)
+    public static ApiResponse<T> Failure(ErrorDto error)
     {
         return new()
         {
-            Error = error,
-            Message = message
+            Error = error
         };
     }
 }

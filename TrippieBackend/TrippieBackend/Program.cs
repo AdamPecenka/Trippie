@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using TrippieBackend.Common;
 using TrippieBackend.Hubs;
 using TrippieBackend.Models;
+using TrippieBackend.Models.DTOs;
 using TrippieBackend.Models.Enums;
 using TrippieBackend.Services;
 using TrippieBackend.Seeds;
@@ -138,6 +139,26 @@ public class Program {
             // await db.Database.MigrateAsync();
             // await db.Database.EnsureCreatedAsync();
         }
+        
+        app.Use(async (ctx, next) =>
+        {
+            try
+            {
+                await next();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[!] Unhandled: {ex}");
+                ctx.Response.StatusCode = 500;
+                ctx.Response.ContentType = "application/json";
+                await ctx.Response.WriteAsJsonAsync(ApiResponse<object>.Failure(new ErrorDto
+                {
+                    Status = "error",
+                    Code = 500,
+                    Message = "Internal server error."
+                }));
+            }
+        });
 
         if(app.Environment.IsDevelopment()) {
             app.UseSwagger();
