@@ -167,8 +167,6 @@ public class TrippieContext : DbContext
             entity.Property(ti => ti.TripId).HasColumnName("trip_id");
             entity.Property(ti => ti.InviteCode).HasColumnName("invite_code").HasMaxLength(255);
             entity.Property(ti => ti.CreatedBy).HasColumnName("created_by");
-            entity.Property(ti => ti.Used).HasColumnName("used");
-            entity.Property(ti => ti.UsedAt).HasColumnName("used_at");
             entity.Property(ti => ti.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("now()");
             entity.Property(ti => ti.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("now()");
  

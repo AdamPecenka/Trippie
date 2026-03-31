@@ -37,6 +37,7 @@
 - [ ] `POST /api/trips/:tripId/invites/:inviteCode/join` -> Socketom pridat do tripu, updatnut u vsetkych clenoch
 
 ### Activities
+                    - Johannka
 - [ ] `GET /api/trips/:tripId/activities`
 - [ ] `POST /api/trips/:tripId/activities` -> socketom update u ostatnych clenov tripu
 - [ ] `GET /api/trips/:tripId/activities/:activityId` 
@@ -49,11 +50,11 @@
 - [ ] `PATCH /api/trips/:tripId/accommodations/:accommodationId` -> socketom update u ostatnych clenov tripu
 ~~- [ ] `DELETE /api/trips/:tripId/accommodations/:accommodationId`~~
 
-### Flights                    - Johannka
-- [ ] `GET /api/trips/:tripId/flights`
-- [ ] `POST /api/trips/:tripId/flights`     
-- [ ] `PATCH /api/trips/:tripId/flights/:flightId`
-- [ ] `DELETE /api/trips/:tripId/flights/:flightId`
+### Flights
+- [ ] `GET /api/trips/:tripId/flights`                    - Johannka
+- [ ] `POST /api/trips/:tripId/flights`                    - Johannka  
+- [ ] `PATCH /api/trips/:tripId/flights/:flightId`                    - Johannka
+- [ ] `DELETE /api/trips/:tripId/flights/:flightId`                    - Johannka
 
 ### Location
 - [ ] `POST /api/location/trips/:tripId/me` -> Moja posledna lokacia pred odpojenim, inak cez socket y

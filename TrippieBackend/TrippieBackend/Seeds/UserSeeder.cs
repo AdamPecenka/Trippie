@@ -14,33 +14,24 @@ public static class UserSeeder
             return;
         }
 
-        db.Set<User>().AddRange(
+        await db.Set<User>().AddRangeAsync(
             new User
             {
-                Firstname = "Marek",
-                Lastname = "Novák",
-                Email = "marek.novak@example.com",
+                Firstname = "Johannka",
+                Lastname = "Tilesova",
+                Email = "johannka.tilesova@example.com",
                 PhoneNumber = "+421901234567",
-                PasswordHash = "placeholder_hash_1",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Heslo@1234", workFactor: 12),
                 Theme = ThemeEnum.LIGHT
             },
             new User
             {
-                Firstname = "Jana",
-                Lastname = "Kováčová",
-                Email = "jana.kovacova@example.com",
+                Firstname = "Adam",
+                Lastname = "Pecenka",
+                Email = "adam.pecenka@example.com",
                 PhoneNumber = "+421902345678",
-                PasswordHash = "placeholder_hash_2",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Heslo@1234", workFactor: 12),
                 Theme = ThemeEnum.DARK
-            },
-            new User
-            {
-                Firstname = "Tomáš",
-                Lastname = "Horváth",
-                Email = "tomas.horvath@example.com",
-                PhoneNumber = "+421903456789",
-                PasswordHash = "placeholder_hash_3",
-                Theme = ThemeEnum.LIGHT
             }
         );
 
