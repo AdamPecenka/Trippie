@@ -13,7 +13,7 @@ public static class PlaceSeeder
             return;
         }
 
-        db.Set<Place>().AddRange(
+        await db.Set<Place>().AddRangeAsync(
             new Place
             {
                 Address = "Barcelona, Spain",
@@ -43,6 +43,16 @@ public static class PlaceSeeder
                 Latitude = 41.3926379,
                 Longitude = 2.163732,
                 GooglePlaceId = "ChIJebQOLzqjpBIRr9udRFMaKDk",
+            },
+            new Place
+            {
+                Address = "Carrer de Casanova, 52, Local 1, Eixample, 08011 Barcelona, Spain",
+                Name = "Onefam Batlló",
+                City = "Barcelona",
+                Country = "Spain",
+                Latitude = 41.384651,
+                Longitude = 2.1601241,
+                GooglePlaceId = "ChIJebF17tSjpBIRGMhxzrypML0",
             }
         );
         

@@ -36,14 +36,12 @@ public class Program {
                 await AirportSeeder.SeedAsync(context, cancellationToken);         // no deps
                 await PlaceSeeder.SeedAsync(context, cancellationToken);           // no deps
                 await UserSeeder.SeedAsync(context, cancellationToken);            // no deps
-                // await TripSeeder.SeedAsync(context, cancellationToken);            // → Users, Places
-                // await TripMemberSeeder.SeedAsync(context, cancellationToken);      // → Trips, Users
-                // await TripInviteSeeder.SeedAsync(context, cancellationToken);      // → Trips, Users
-                // await FlightSeeder.SeedAsync(context, cancellationToken);          // → Trips, Airports
-                // await AccommodationSeeder.SeedAsync(context, cancellationToken);   // → Trips, Places
+                await TripSeeder.SeedAsync(context, cancellationToken);            // → Users, Places
+                await TripMemberSeeder.SeedAsync(context, cancellationToken);      // → Trips, Users
+                await FlightSeeder.SeedAsync(context, cancellationToken);          // → Trips, Airports
+                await AccommodationSeeder.SeedAsync(context, cancellationToken);   // → Trips, Places
                 // await ActivitySeeder.SeedAsync(context, cancellationToken);        // → Trips, Places, Users
                 // await FavoriteSeeder.SeedAsync(context, cancellationToken);        // → Users, Places
-                // await UserLastLocationSeeder.SeedAsync(context, cancellationToken);// → Users, Trips
             })
             // .UseLoggerFactory(LoggerFactory.Create(b =>
             //     b.AddConsole()
