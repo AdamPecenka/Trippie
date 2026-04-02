@@ -12,5 +12,6 @@ public enum AppErrorEnum
     Refresh_Token_Expired,
     Refresh_Token_Revoked,
     Places_Autocomplete_Lat_Or_Lng_Not_Provided,
-    Place_Not_Found
+    Place_Not_Found,
+    User_Not_Found,
 }

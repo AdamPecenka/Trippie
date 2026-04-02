@@ -1,6 +1,9 @@
 [] - pri zavreti aplikacie vyslat poslednu polohu do databazy, pri otvorenej aplikacii ju zdielat iba cez sockety
     [] - pri userovi ukazovat online/last seen na zaklade tohto
 
+- User is populated on every endpoint automatically. Just use it directly
+    - `var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);`
+
 # Trippie API Endpoints
 
 ## REST
@@ -14,7 +17,7 @@
 ### Users
 - [ ] `GET /api/users/me`
 - [ ] `PUT /api/users/me` -> socketom update u ostatnych userov
-- [ ] `DELETE /api/users/me` -> socketom update u ostatnych userov
+~~- [ ] `DELETE /api/users/me` -> socketom update u ostatnych userov~~
 - [ ] `PATCH /api/users/me/theme` 
 - [ ] `PUT /api/users/me/avatar` -> socketom update u ostatnych userov
 - [ ] `GET /api/users/me/avatar`
@@ -57,6 +60,7 @@
 - [ ] `DELETE /api/trips/:tripId/flights/:flightId`                    - Johannka
 
 ### Location
+- Johannka
 - [ ] `POST /api/location/trips/:tripId/me` -> Moja posledna lokacia pred odpojenim, inak cez socket y
 
 ### Favorites
