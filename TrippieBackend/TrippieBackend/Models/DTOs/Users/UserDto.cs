@@ -10,5 +10,4 @@ public class UserDto
     public string Email { get; init; }
     public string PhoneNumber { get; init; }
     public ThemeEnum Theme { get; init; }
-    
 }
