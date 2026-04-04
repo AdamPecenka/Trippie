@@ -11,6 +11,7 @@ public static class ServiceCollection {
         services.AddTransient<IAirportService, AirportService>();
         services.AddTransient<IPlaceService, PlaceService>();
         services.AddTransient<ITripService, TripService>();
+        services.AddTransient<ITripMemberService, TripMemberService>();
 
         return services;
     }

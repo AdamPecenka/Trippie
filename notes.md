@@ -44,8 +44,8 @@
 
 ### Trip Members
 
-- [ ] `GET /api/trips/:tripId/members`
-- [ ] `DELETE /api/trips/:tripId/members/me` -> socketom update u ostatnych clenov tripu
+- [x] `GET /api/trips/:tripId/members`
+- [x] `DELETE /api/trips/:tripId/members/me` -> socketom update u ostatnych clenov tripu
 
 ### Invites
 
