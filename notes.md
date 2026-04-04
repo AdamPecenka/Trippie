@@ -65,9 +65,9 @@
 
 ### Accommodations
 
-- [ ] `GET /api/trips/:tripId/accommodations`
-- [ ] `POST /api/trips/:tripId/accommodations`
-- [ ] `PATCH /api/trips/:tripId/accommodations/:accommodationId` -> socketom update u ostatnych clenov tripu
+- [x] `GET /api/trips/:tripId/accommodations`
+- [x] `POST /api/trips/:tripId/accommodations`
+- [x] `PATCH /api/trips/:tripId/accommodations/:accommodationId` -> socketom update u ostatnych clenov tripu
 ~~- [ ] `DELETE /api/trips/:tripId/accommodations/:accommodationId`~~
 
 ### Flights
