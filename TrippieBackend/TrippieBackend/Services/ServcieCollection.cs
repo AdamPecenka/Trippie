@@ -10,6 +10,7 @@ public static class ServiceCollection {
         services.AddTransient<IAuthService, AuthService>();
         services.AddTransient<IAirportService, AirportService>();
         services.AddTransient<IPlaceService, PlaceService>();
+        services.AddTransient<ITripService, TripService>();
 
         return services;
     }

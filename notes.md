@@ -1,79 +1,101 @@
-[] - pri zavreti aplikacie vyslat poslednu polohu do databazy, pri otvorenej aplikacii ju zdielat iba cez sockety
-    [] - pri userovi ukazovat online/last seen na zaklade tohto
+# Notes
+
+- pri zavreti aplikacie vyslat poslednu polohu do databazy, pri otvorenej aplikacii ju zdielat iba cez sockety
+    - pri userovi ukazovat online/last seen na zaklade tohto
 
 - User is populated on every endpoint automatically. Just use it directly
     - `var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);`
+
+
+- Vytvaranie tripu zabezpecuju tri endpointy
+    1. `POST /api/trips`
+    2. `POST /api/trips/:tripId/accommodations`
+    3. `POST /api/trips/:tripId/flights`
+- na clientovi treba zabezpecit aby sa najprv vytvorilo jadro tripu, to navrati TripId a pomocou toho sa potom poslu zvysne dva endpointy
 
 # Trippie API Endpoints
 
 ## REST
 
 ### Auth
+
 - [x] `POST /api/auth/register`
 - [x] `POST /api/auth/login`
 - [x] `POST /api/auth/logout`
 - [x] `POST /api/auth/refresh`
 
 ### Users
-- [ ] `GET /api/users/me`
-- [ ] `PUT /api/users/me` -> socketom update u ostatnych userov
+
+- [x] `GET /api/users/me`
+- [x] `PUT /api/users/me` -> socketom update u ostatnych userov
 ~~- [ ] `DELETE /api/users/me` -> socketom update u ostatnych userov~~
-- [ ] `PATCH /api/users/me/theme` 
+- [x] `PATCH /api/users/me/theme` -> socketom update pre UserId
 - [ ] `PUT /api/users/me/avatar` -> socketom update u ostatnych userov
 - [ ] `GET /api/users/me/avatar`
 
 ### Trips
-- [ ] `GET /api/trips` 
-- [ ] `POST /api/trips` 
-- [ ] `GET /api/trips/:tripId`
-- [ ] `PATCH /api/trips/:tripId`
+
+- [x] `GET /api/trips`
+- [x] `POST /api/trips`
+- [x] `GET /api/trips/:tripId`
+- [x] `PATCH /api/trips/:tripId`
 ~~- [ ] `DELETE /api/trips/:tripId`~~
-- [ ] `PATCH /api/trips/:tripId/status` -> socketom update u ostatnych clenov tripu
+- [x] `PATCH /api/trips/:tripId/status` -> socketom update u ostatnych clenov tripu
 
 ### Trip Members
+
 - [ ] `GET /api/trips/:tripId/members`
 - [ ] `DELETE /api/trips/:tripId/members/me` -> socketom update u ostatnych clenov tripu
 
 ### Invites
+
 - [ ] `POST /api/trips/:tripId/invites` -> Socketom poslat invite
 - [ ] `GET /api/trips/:tripId/invites/:inviteCode/validate`
 - [ ] `POST /api/trips/:tripId/invites/:inviteCode/join` -> Socketom pridat do tripu, updatnut u vsetkych clenoch
 
 ### Activities
+
                     - Johannka
+
 - [ ] `GET /api/trips/:tripId/activities`
 - [ ] `POST /api/trips/:tripId/activities` -> socketom update u ostatnych clenov tripu
-- [ ] `GET /api/trips/:tripId/activities/:activityId` 
+- [ ] `GET /api/trips/:tripId/activities/:activityId`
 - [ ] `PATCH /api/trips/:tripId/activities/:activityId` -> socketom update u ostatnych clenov tripu
 - [ ] `DELETE /api/trips/:tripId/activities/:activityId` -> socketom update u ostatnych clenov tripu
 
 ### Accommodations
+
 - [ ] `GET /api/trips/:tripId/accommodations`
-- [ ] `POST /api/trips/:tripId/accommodations` 
+- [ ] `POST /api/trips/:tripId/accommodations`
 - [ ] `PATCH /api/trips/:tripId/accommodations/:accommodationId` -> socketom update u ostatnych clenov tripu
 ~~- [ ] `DELETE /api/trips/:tripId/accommodations/:accommodationId`~~
 
 ### Flights
+
 - [ ] `GET /api/trips/:tripId/flights`                    - Johannka
 - [ ] `POST /api/trips/:tripId/flights`                    - Johannka  
 - [ ] `PATCH /api/trips/:tripId/flights/:flightId`                    - Johannka
 - [ ] `DELETE /api/trips/:tripId/flights/:flightId`                    - Johannka
 
 ### Location
+
 - Johannka
 - [ ] `POST /api/location/trips/:tripId/me` -> Moja posledna lokacia pred odpojenim, inak cez socket y
 
 ### Favorites
+
 - [ ] `GET /api/favorites`                     - Johannka
 - [ ] `POST /api/favorites` -> Socketom pre UserId                     - Johannka
 - [ ] `DELETE /api/favorites/:placeId`-> Socketom pre UserId                    - Johannka
 
 ### Places
+
 - [x] `POST /api/places/resolve`
 - [x] `GET /api/places/search?query=_&lat=_&lng=_`
 - [ ] `GET /api/places/:placeId`                    - Johannka
 
 ### Airports
+
 - [x] `GET /api/airports?search=:query&limit=:n`
 
 ---
@@ -81,11 +103,13 @@
 ## WebSocket
 
 ### Client → Server
+
 - [ ] `trip:join_room`
 - [ ] `trip:leave_room`
 - [ ] `location:update`
 
 ### Server → Client
+
 - [ ] `location:member_moved`
 - [ ] `trip:member_joined`
 - [ ] `trip:member_left`
@@ -96,6 +120,7 @@
 - [ ] `invite:used`
 
 # Doporucena folder structure
+
 ```
 lib/
 ├── main.dart

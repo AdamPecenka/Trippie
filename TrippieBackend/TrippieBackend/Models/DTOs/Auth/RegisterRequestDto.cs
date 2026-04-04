@@ -4,10 +4,10 @@ namespace TrippieBackend.Models.DTOs;
 
 public class RegisterRequestDto
 {
-    [Required, MaxLength(50)]
+    [Required, MinLength(1), MaxLength(50)]
     public string Firstname { get; init; }
 
-    [Required, MaxLength(50)]
+    [Required, MinLength(1), MaxLength(50)]
     public string Lastname { get; init; }
     
     [Required, EmailAddress, MaxLength(320)]
