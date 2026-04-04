@@ -1,11 +1,13 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using System.Security.Claims;
+using TrippieBackend.Models.Model;
 
 namespace TrippieBackend.Common;
 
-public class Utils {
+public static class Utils {
 
-    public string GetLocalIpAdress()
+    public static string GetLocalIpAdress()
     {
         using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0);
         socket.Connect("8.8.8.8", 65530);
@@ -13,5 +15,13 @@ public class Utils {
         if (endPoint == null)
             throw new Exception("[!] No IPv4 address found for this machine.");
         return endPoint.Address.ToString();
+    }
+
+    public static Guid GetUserId(ClaimsPrincipal user)
+    {
+        var claim = user.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? throw new UnauthorizedAccessException("User ID claim not found.");
+
+        return Guid.Parse(claim);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using TrippieBackend.Common;
 using TrippieBackend.Models;
 using TrippieBackend.Models.DTOs;
 using TrippieBackend.Services.IService;
@@ -23,7 +24,7 @@ public class UserController: ControllerBase {
     [HttpGet]
     public async Task<IActionResult> GetMe()
     {
-        Guid userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        Guid userId = Utils.GetUserId(User);
 
         var result = await _userService.GetMe(userId);
 
@@ -41,17 +42,20 @@ public class UserController: ControllerBase {
     [HttpPut]
     public async Task<IActionResult> PutMe([FromBody] UserPutRequestDto userPutRequest)
     {
-        Guid userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        Guid userId = Utils.GetUserId(User);
         
         await _userService.PutMe(userId, userPutRequest);
         // optimisticky update, nema sa co pokazit :3
         return NoContent();
     }
 
-    [HttpPatch]
+    /// <summary>Toggle the authenticated user's theme between LIGHT and DARK.</summary>
+    /// <response code="204">Theme updated successfully</response>
+    /// <response code="401">Token is missing or invalid</response>
+    [HttpPatch("theme")]
     public async Task<IActionResult> UpdateUserTheme()
     {
-        Guid userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        Guid userId = Utils.GetUserId(User);
 
         await _userService.UpdateUserTheme(userId);
 

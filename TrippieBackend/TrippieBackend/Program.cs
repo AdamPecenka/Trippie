@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Reflection;
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using TrippieBackend.Common;
 using TrippieBackend.Hubs;
@@ -19,7 +20,11 @@ public class Program {
     public static async Task Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
         
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
         
         builder.Services.AddSignalR();
 
@@ -64,10 +69,7 @@ public class Program {
             config.IncludeXmlComments(xmlPath);
         });
         
-        
-        
-        var utils = new Utils();
-        string localIpAddress = utils.GetLocalIpAdress();
+        string localIpAddress = Utils.GetLocalIpAdress();
 
         builder.WebHost.ConfigureKestrel(options => {
             options.Listen(System.Net.IPAddress.Parse(localIpAddress), 5001, listenOptions => {

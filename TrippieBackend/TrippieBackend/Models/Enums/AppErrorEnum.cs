@@ -13,5 +13,10 @@ public enum AppErrorEnum
     Refresh_Token_Revoked,
     Places_Autocomplete_Lat_Or_Lng_Not_Provided,
     Place_Not_Found,
-    User_Not_Found,
+    Destination_Place_Not_Found,
+    Trip_Not_Found,
+    Forbidden,
+    Trip_Access_Denied,
+    Trip_Manager_Required,
+    Trip_Invalid_Status_Transition
 }
