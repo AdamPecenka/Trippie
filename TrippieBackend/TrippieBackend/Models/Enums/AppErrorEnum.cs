@@ -18,5 +18,6 @@ public enum AppErrorEnum
     Forbidden,
     Trip_Access_Denied,
     Trip_Manager_Required,
-    Trip_Invalid_Status_Transition
+    Trip_Invalid_Status_Transition,
+    Trip_Manager_Cannot_Leave
 }
