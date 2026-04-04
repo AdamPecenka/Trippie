@@ -19,5 +19,7 @@ public enum AppErrorEnum
     Trip_Access_Denied,
     Trip_Manager_Required,
     Trip_Invalid_Status_Transition,
-    Trip_Manager_Cannot_Leave
+    Trip_Manager_Cannot_Leave,
+    Accommodation_Not_Found,
+    Accommodation_Already_Exists
 }
