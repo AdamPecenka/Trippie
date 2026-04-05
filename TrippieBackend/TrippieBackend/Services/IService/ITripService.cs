@@ -1,4 +1,4 @@
-﻿using TrippieBackend.Models.DTOs;
+﻿using TrippieBackend.Models;
 using TrippieBackend.Models.DTOs.Trips;
 using TrippieBackend.Models.Enums;
 

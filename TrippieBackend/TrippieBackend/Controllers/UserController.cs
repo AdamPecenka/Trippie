@@ -62,4 +62,57 @@ public class UserController: ControllerBase {
         // optimisticky update, nema sa co pokazit :3
         return NoContent();
     }
+    
+    /// <summary>Upload or replace the authenticated user's avatar.</summary>
+    /// <param name="file">Image file (JPEG, PNG or WebP, max 5MB)</param>
+    /// <response code="204">Avatar uploaded successfully</response>
+    /// <response code="400">Invalid file format or file too large</response>
+    /// <response code="401">Token is missing or invalid</response>
+    [HttpPut("avatar")]
+    public async Task<IActionResult> UploadAvatar(IFormFile file)
+    {
+        Guid userId = Utils.GetUserId(User);
+
+        var result = await _userService.UploadAvatar(userId, file);
+
+        if (!result.IsSuccess)
+        {
+            return StatusCode(result.Code, ApiResponse<object>.Failure(new ErrorDto
+            {
+                Status = "error",
+                Code = result.Code,
+                Message = result.Error!,
+                Field = result.Field
+            }));
+        }
+
+        return NoContent();
+    }
+
+    /// <summary>Get the authenticated user's avatar as binary image data.</summary>
+    /// <returns>Raw image file</returns>
+    /// <response code="200">Avatar returned as binary</response>
+    /// <response code="401">Token is missing or invalid</response>
+    /// <response code="404">User has no avatar uploaded</response>
+    [HttpGet("avatar")]
+    public async Task<IActionResult> GetAvatar()
+    {
+        Guid userId = Utils.GetUserId(User);
+
+        var result = await _userService.GetAvatar(userId);
+
+        if (!result.IsSuccess)
+        {
+            return StatusCode(result.Code, ApiResponse<object>.Failure(new ErrorDto
+            {
+                Status = "error",
+                Code = result.Code,
+                Message = result.Error!,
+                Field = result.Field
+            }));
+        }
+
+        var (data, contentType) = result.Value;
+        return File(data, contentType);
+    }
 }

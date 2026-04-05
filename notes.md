@@ -4,7 +4,8 @@
     - pri userovi ukazovat online/last seen na zaklade tohto
 
 - User is populated on every endpoint automatically. Just use it directly
-    - `var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);`
+    - `var userId = Utils.GetUserId(User)` 
+        - User je tohto typu `public ClaimsPrincipal User { get; } in class Microsoft.AspNetCore.Mvc.ControllerBase`
 
 
 - Vytvaranie tripu zabezpecuju tri endpointy
@@ -30,7 +31,7 @@
 - [x] `PUT /api/users/me` -> socketom update u ostatnych userov
 ~~- [ ] `DELETE /api/users/me` -> socketom update u ostatnych userov~~
 - [x] `PATCH /api/users/me/theme` -> socketom update pre UserId
-- [ ] `PUT /api/users/me/avatar` -> socketom update u ostatnych userov
+- [x] `PUT /api/users/me/avatar` -> socketom update u ostatnych userov
 - [ ] `GET /api/users/me/avatar`
 
 ### Trips
@@ -49,9 +50,8 @@
 
 ### Invites
 
-- [ ] `POST /api/trips/:tripId/invites` -> Socketom poslat invite
-- [ ] `GET /api/trips/:tripId/invites/:inviteCode/validate`
-- [ ] `POST /api/trips/:tripId/invites/:inviteCode/join` -> Socketom pridat do tripu, updatnut u vsetkych clenoch
+- [x] `POST /api/trips/:tripId/invites` -> Socketom poslat invite
+- [x] `POST /api/trips/:tripId/invites/:inviteCode/join` -> Socketom pridat do tripu, updatnut u vsetkych clenoch
 
 ### Activities
 

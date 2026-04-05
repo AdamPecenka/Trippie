@@ -13,6 +13,7 @@ public static class ServiceCollection {
         services.AddTransient<ITripService, TripService>();
         services.AddTransient<ITripMemberService, TripMemberService>();
         services.AddTransient<IAccommodationService, AccommodationService>();
+        services.AddTransient<IInviteService, InviteService>();
 
         return services;
     }

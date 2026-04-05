@@ -133,7 +133,7 @@ public class Program {
         // Middleware pipeline
         var app = builder.Build();
 
-        // Uncomment this only when you want to seed or migrate, otherwise leave commented
+        //Uncomment this only when you want to seed or migrate, otherwise leave commented
         // using (var scope = app.Services.CreateScope())
         // {
         //     var db = scope.ServiceProvider.GetRequiredService<TrippieContext>();
