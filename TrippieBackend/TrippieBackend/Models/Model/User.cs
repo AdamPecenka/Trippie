@@ -17,6 +17,9 @@ public class User
     public string PasswordHash { get; set; } = null!;
 
     public ThemeEnum Theme { get; set; } = ThemeEnum.LIGHT;
+    
+    public string? AvatarPath { get; set; }
+    
 
     public DateTime CreatedAt { get; set; }
     

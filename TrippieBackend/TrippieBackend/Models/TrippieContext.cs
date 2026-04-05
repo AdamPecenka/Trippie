@@ -48,7 +48,8 @@ public class TrippieContext : DbContext
             entity.Property(u => u.Theme).HasColumnName("theme").HasDefaultValue(ThemeEnum.LIGHT);
             entity.Property(u => u.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("now()");
             entity.Property(u => u.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("now()");
- 
+            entity.Property(u => u.AvatarPath).HasColumnName("avatar_path");
+            
             entity.HasIndex(u => u.Email).IsUnique();
             entity.HasIndex(u => u.PhoneNumber).IsUnique();
         });

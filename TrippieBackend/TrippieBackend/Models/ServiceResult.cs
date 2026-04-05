@@ -1,4 +1,4 @@
-﻿namespace TrippieBackend.Models.DTOs;
+﻿namespace TrippieBackend.Models;
 
 public class ServiceResult<T>
 {

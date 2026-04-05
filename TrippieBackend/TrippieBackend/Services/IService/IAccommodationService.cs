@@ -1,4 +1,4 @@
-﻿using TrippieBackend.Models.DTOs;
+﻿using TrippieBackend.Models;
 using TrippieBackend.Models.DTOs.Accomodations;
 
 namespace TrippieBackend.Services.IService;
