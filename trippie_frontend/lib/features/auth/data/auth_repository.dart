@@ -24,6 +24,20 @@ class AuthRepository {
     }
   }
 
+  Future<AuthResponseDto> googleLogin(String idToken) async {
+    try {
+      final response = await apiService.dio.post(
+        '/api/auth/google',
+        data: {'idToken': idToken},
+      );
+
+      final data = response.data as Map<String, dynamic>;
+      return AuthResponseDto.fromJson(data['data'] as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _mapDioError(e);
+    }
+  }
+
   Future<AuthResponseDto> register(RegisterRequestDto dto) async {
     try {
       final response = await apiService.dio.post(
