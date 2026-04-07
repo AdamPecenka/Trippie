@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:trippie_frontend/app/router.dart';
 import 'package:trippie_frontend/core/theme/app_theme.dart';
 import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -48,10 +49,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(authProvider.notifier).login(
-            _emailController.text.trim(),
-            _passwordController.text,
-          );
+      await ref
+          .read(authProvider.notifier)
+          .login(_emailController.text.trim(), _passwordController.text);
     } on Exception catch (e) {
       if (mounted) {
         setState(() {
@@ -100,24 +100,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           controller: _passwordController,
                           visible: _passwordVisible,
                           onToggleVisibility: () {
-                            setState(() => _passwordVisible = !_passwordVisible);
+                            setState(
+                              () => _passwordVisible = !_passwordVisible,
+                            );
                           },
                         ),
                         const SizedBox(height: 24),
                         if (_errorMessage != null) ...[
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.redAccent.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                  color: Colors.redAccent.withValues(alpha: 0.4)),
+                                color: Colors.redAccent.withValues(alpha: 0.4),
+                              ),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.error_outline,
-                                    color: Colors.redAccent, size: 18),
+                                const Icon(
+                                  Icons.error_outline,
+                                  color: Colors.redAccent,
+                                  size: 18,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -149,11 +157,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(height: 20),
                         _OrDivider(),
                         const SizedBox(height: 20),
-                        OutlinedButton(
-                          onPressed: () {
-                            // TODO: Google SSO
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            try {
+                              await ref
+                                  .read(authProvider.notifier)
+                                  .googleLogin();
+                            } on Exception catch (e) {
+                              if (mounted) {
+                                setState(() {
+                                  _errorMessage = e.toString().replaceFirst(
+                                    'Exception: ',
+                                    '',
+                                  );
+                                });
+                              }
+                            }
                           },
-                          child: const Text('Continue with Google'),
+                          icon: const FaIcon(FontAwesomeIcons.google, size: 18),
+                          label: const Text('Continue with Google'),
                         ),
                         const SizedBox(height: 20),
                         _RegisterLink(),
