@@ -8,4 +8,5 @@ public interface IAccommodationService
     Task<ServiceResult<AccommodationDto>> GetAccommodation(Guid userId, Guid tripId);
     Task<ServiceResult<bool>> PatchAccommodation(Guid userId, Guid tripId, Guid accommodationId, PatchAccommodationRequestDto request);
     Task<ServiceResult<AccommodationDto>> CreateAccommodation(Guid userId, Guid tripId, CreateAccommodationRequestDto request);
+    Task<ServiceResult<bool>> DeleteAccommodation(Guid userId, Guid tripId, Guid accommodationId);
 }

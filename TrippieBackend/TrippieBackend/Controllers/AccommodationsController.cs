@@ -106,4 +106,27 @@ public class AccommodationsController : ControllerBase
     
         return Ok(ApiResponse<AccommodationDto>.Success(result.Value!));
     }
+    
+    /// <summary>Delete accommodation for a trip. Only accessible by the Trip Manager.</summary>
+    /// <response code="204">Accommodation deleted successfully</response>
+    /// <response code="403">Caller is not a member or not the Trip Manager</response>
+    /// <response code="404">Accommodation not found</response>
+    [HttpDelete("{accommodationId:guid}")]
+    public async Task<IActionResult> DeleteAccommodation([FromRoute] Guid tripId, [FromRoute] Guid accommodationId)
+    {
+        Guid userId = Utils.GetUserId(User);
+
+        var result = await _accommodationService.DeleteAccommodation(userId, tripId, accommodationId);
+
+        if (!result.IsSuccess)
+            return StatusCode(result.Code, ApiResponse<object>.Failure(new ErrorDto
+            {
+                Status = "error",
+                Code = result.Code,
+                Message = result.Error!,
+                Field = result.Field
+            }));
+
+        return NoContent();
+    }
 }
