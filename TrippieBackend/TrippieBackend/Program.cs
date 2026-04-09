@@ -45,7 +45,7 @@ public class Program {
                 await TripMemberSeeder.SeedAsync(context, cancellationToken);      // → Trips, Users
                 await FlightSeeder.SeedAsync(context, cancellationToken);          // → Trips, Airports
                 await AccommodationSeeder.SeedAsync(context, cancellationToken);   // → Trips, Places
-                // await ActivitySeeder.SeedAsync(context, cancellationToken);        // → Trips, Places, Users
+                await ActivitySeeder.SeedAsync(context, cancellationToken);        // → Trips, Places, Users
                 // await FavoriteSeeder.SeedAsync(context, cancellationToken);        // → Users, Places
             })
             // .UseLoggerFactory(LoggerFactory.Create(b =>
@@ -134,12 +134,12 @@ public class Program {
         var app = builder.Build();
 
         //Uncomment this only when you want to seed or migrate, otherwise leave commented
-        // using (var scope = app.Services.CreateScope())
-        // {
-        //     var db = scope.ServiceProvider.GetRequiredService<TrippieContext>();
-        //     await db.Database.MigrateAsync();
-        //     await db.Database.EnsureCreatedAsync();
-        // }
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<TrippieContext>();
+            await db.Database.MigrateAsync();
+            await db.Database.EnsureCreatedAsync();
+        }
         
         app.Use(async (ctx, next) =>
         {
