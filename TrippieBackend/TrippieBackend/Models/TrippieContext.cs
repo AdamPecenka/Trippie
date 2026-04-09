@@ -195,6 +195,7 @@ public class TrippieContext : DbContext
  
             entity.Property(a => a.TripId).HasColumnName("trip_id");
             entity.Property(a => a.PlaceId).HasColumnName("place_id");
+            entity.Property(a => a.Name).HasColumnName("name").HasMaxLength(100);
             entity.Property(a => a.ActivityDate).HasColumnName("activity_date");
             entity.Property(a => a.StartTime).HasColumnName("start_time");
             entity.Property(a => a.EndTime).HasColumnName("end_time");
