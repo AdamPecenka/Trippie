@@ -144,4 +144,27 @@ public class AccommodationService : IAccommodationService
             CheckOut = accommodation.CheckOut
         });
     }
+    
+    public async Task<ServiceResult<bool>> DeleteAccommodation(Guid userId, Guid tripId, Guid accommodationId)
+    {
+        var member = await _context.TripMembers
+            .SingleOrDefaultAsync(tm => tm.TripId == tripId && tm.UserId == userId);
+
+        if (member == null)
+            return ServiceResult<bool>.Fail(403, AppErrorEnum.Trip_Access_Denied.ToString());
+
+        if (member.TripRole != TripRoleEnum.TRIP_MANAGER)
+            return ServiceResult<bool>.Fail(403, AppErrorEnum.Trip_Manager_Required.ToString());
+
+        var accommodation = await _context.Accommodations
+            .SingleOrDefaultAsync(a => a.Id == accommodationId && a.TripId == tripId);
+
+        if (accommodation == null)
+            return ServiceResult<bool>.Fail(404, AppErrorEnum.Accommodation_Not_Found.ToString());
+
+        _context.Accommodations.Remove(accommodation);
+        await _context.SaveChangesAsync();
+
+        return ServiceResult<bool>.Ok(true);
+    }
 }
