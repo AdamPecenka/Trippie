@@ -45,7 +45,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         .when(
           data: (data) => data,
           loading: () => null,
-          error: (_, __) => null,
+          error: (_, _) => null,
         );
     final firstName = user?.firstname ?? '';
 

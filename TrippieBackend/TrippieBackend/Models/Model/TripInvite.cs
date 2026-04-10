@@ -9,7 +9,7 @@ public class TripInvite
 
     public Guid? TripId { get; set; }
 
-    public string? InviteCode { get; set; }
+    public int InviteCode { get; set; }
 
     public Guid? CreatedBy { get; set; }
 

@@ -13,7 +13,7 @@ public class RegisterRequestDto
     [Required, EmailAddress, MaxLength(320)]
     public string Email { get; init; }
     
-    [Required, Phone, MaxLength(20)]
+    [Phone, MaxLength(20)]
     public string PhoneNumber { get; init; }
     
     [Required, MinLength(10)]

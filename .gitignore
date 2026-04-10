@@ -19,3 +19,5 @@ appsettings.json
 # Misc
 Misc/
 **/Storage/
+trippie_frontend/lib/core/config/app_config.dart
+trippie_frontend/android/app/src/main/res/values/strings.xml

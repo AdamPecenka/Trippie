@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 using TrippieBackend.Models;
 using TrippieBackend.Models.DTOs;
@@ -185,6 +186,77 @@ public class AuthService : IAuthService
         return ServiceResult<bool>.Ok(true);
     } 
     
+    public async Task<ServiceResult<AuthResponseDto>> GoogleLogin(string idToken)
+    {
+        GoogleJsonWebSignature.ValidationSettings settings = new()
+        {
+            Audience = new[] { _configuration["Google:ClientId"] }
+        };
+
+        GoogleJsonWebSignature.Payload payload;
+
+        try
+        {
+            payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+        }
+        catch (InvalidJwtException)
+        {
+            return ServiceResult<AuthResponseDto>.Fail(401, AppErrorEnum.Invalid_Credentials.ToString());
+        }
+
+        User? user = await _context.Users.SingleOrDefaultAsync(x => x.Email == payload.Email);
+
+        if (user == null)
+        {
+            user = new User
+            {
+                Firstname = payload.GivenName ?? payload.Email.Split('@')[0],
+                Lastname = payload.FamilyName ?? string.Empty,
+                Email = payload.Email,
+                PhoneNumber = string.Empty,
+                /*
+                 * Google users authenticate via Google, they never set a password with your app. But your User model has
+                 * PasswordHash as not null, so something has to go in there. The random GUID gets hashed with BCrypt,
+                 * making it a valid but completely unknown hash that nobody can ever log in with via the regular login flow
+                 */
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString(), workFactor: 12),
+                Theme = ThemeEnum.LIGHT
+            };
+
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
+        }
+
+        var existingToken = await _context.RefreshTokens
+            .FirstOrDefaultAsync(x => x.UserId == user.Id && !x.Revoked);
+
+        if (existingToken != null)
+        {
+            existingToken.Revoked = true;
+            existingToken.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+
+        var refreshToken = await GenerateRefreshToken(user.Id);
+        string accessToken = await GenerateJwtToken(user.Id, user.Email);
+
+        AuthResponseDto authResponseDto = new()
+        {
+            UserDto = new UserDto
+            {
+                Id = user.Id,
+                Firstname = user.Firstname,
+                Lastname = user.Lastname,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Theme = user.Theme
+            },
+            AccessToken = accessToken,
+            RefreshToken = refreshToken.TokenValue,
+        };
+
+        return ServiceResult<AuthResponseDto>.Ok(authResponseDto);
+    }
     
     
     
