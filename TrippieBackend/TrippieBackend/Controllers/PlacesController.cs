@@ -63,4 +63,28 @@ public class PlacesController : ControllerBase
 
         return Ok(ApiResponse<PlaceDto>.Success(result.Value!));
     }
+    
+    /// <summary>Get a place by its internal ID.</summary>
+    /// <param name="placeId">Internal Place UUID</param>
+    /// <returns>Place details</returns>
+    /// <response code="200">Place returned successfully</response>
+    /// <response code="404">Place not found</response>
+    [HttpGet("{placeId:guid}")]
+    public async Task<IActionResult> GetPlace([FromRoute] Guid placeId)
+    {
+        var result = await _placeService.GetPlace(placeId);
+
+        if (!result.IsSuccess)
+        {
+            return StatusCode(result.Code, ApiResponse<object>.Failure(new ErrorDto
+            {
+                Status = "error",
+                Code = result.Code,
+                Message = result.Error!,
+                Field = result.Field
+            }));
+        }
+
+        return Ok(ApiResponse<PlaceDto>.Success(result.Value!));
+    }
 }

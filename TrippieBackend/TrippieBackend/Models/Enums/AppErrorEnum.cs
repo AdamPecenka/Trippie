@@ -43,4 +43,17 @@ public enum AppErrorEnum
     
     // --- General ---
     Forbidden,
+    
+    // --- Activities ---
+    Activity_Not_Found,
+    
+    // --- Airport ---
+    Airport_Not_Found,
+    
+    // --- Flights ---
+    Flight_Not_Found,
+    
+    // --- Favotites ---
+    Favorite_Not_Found,
+    Favorite_Already_Exists
 }

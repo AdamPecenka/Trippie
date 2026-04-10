@@ -10,6 +10,8 @@ public class Activity
     public Guid? TripId { get; set; }
 
     public Guid? PlaceId { get; set; }
+    
+    public string Name { get; set; }
 
     public DateOnly? ActivityDate { get; set; }
 
