@@ -117,4 +117,29 @@ public class AuthController: ControllerBase {
 
         return NoContent();
     }
+    
+    /// <summary>Login or register using a Google ID token</summary>
+    /// <param name="googleAuthRequestDto">Google ID token from the client</param>
+    /// <returns>User data with access and refresh tokens</returns>
+    /// <response code="200">Google login successful</response>
+    /// <response code="401">Invalid or expired Google ID token</response>
+    [AllowAnonymous]
+    [HttpPost("google")]
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleAuthRequestDto googleAuthRequestDto)
+    {
+        var result = await _authService.GoogleLogin(googleAuthRequestDto.IdToken);
+
+        if (!result.IsSuccess)
+        {
+            return StatusCode(result.Code, ApiResponse<object>.Failure(new ErrorDto
+            {
+                Status = "error",
+                Code = result.Code,
+                Message = result.Error!,
+                Field = result.Field
+            }));
+        }
+
+        return Ok(ApiResponse<AuthResponseDto>.Success(result.Value!));
+    }
 }

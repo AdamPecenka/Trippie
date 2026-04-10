@@ -8,4 +8,5 @@ public interface IAuthService {
     Task<ServiceResult<AuthResponseDto>> RegisterNewUser(RegisterRequestDto registerRequestDto);
     Task<ServiceResult<RefreshResponseDto>> RefreshTokens(string refreshTokenValue);
     Task<ServiceResult<bool>> Logout(string refreshTokenValue);
+    Task<ServiceResult<AuthResponseDto>> GoogleLogin(string idToken);
 }

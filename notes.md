@@ -6,7 +6,8 @@
 - User is populated on every endpoint automatically. Just use it directly
     - `var userId = Utils.GetUserId(User)` 
         - User je tohto typu `public ClaimsPrincipal User { get; } in class Microsoft.AspNetCore.Mvc.ControllerBase`
-
+- toto treba spustit pri kazdej zmene routera
+    - `dart run build_runner build --delete-conflicting-outputs`
 
 - Vytvaranie tripu zabezpecuju tri endpointy
     1. `POST /api/trips`
@@ -24,6 +25,7 @@
 - [x] `POST /api/auth/login`
 - [x] `POST /api/auth/logout`
 - [x] `POST /api/auth/refresh`
+- [x] `POST /api/auth/google`
 
 ### Users
 
@@ -32,7 +34,7 @@
 ~~- [ ] `DELETE /api/users/me` -> socketom update u ostatnych userov~~
 - [x] `PATCH /api/users/me/theme` -> socketom update pre UserId
 - [x] `PUT /api/users/me/avatar` -> socketom update u ostatnych userov
-- [ ] `GET /api/users/me/avatar`
+- [x] `GET /api/users/me/avatar`
 
 ### Trips
 

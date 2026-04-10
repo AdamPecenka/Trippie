@@ -55,8 +55,8 @@ public class InvitesController : ControllerBase
     /// <response code="401">Token is missing or invalid</response>
     /// <response code="404">Trip not found or invite code is invalid</response>
     /// <response code="409">Trip is already finished or caller is already a member</response>
-    [HttpPost("{inviteCode}/join")]
-    public async Task<IActionResult> JoinTrip([FromRoute] Guid tripId, [FromRoute] string inviteCode)
+    [HttpPost("{inviteCode:int}/join")]
+    public async Task<IActionResult> JoinTrip([FromRoute] Guid tripId, [FromRoute] int inviteCode)
     {
         Guid userId = Utils.GetUserId(User);
 

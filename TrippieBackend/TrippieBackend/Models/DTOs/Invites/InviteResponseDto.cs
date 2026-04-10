@@ -2,5 +2,5 @@
 
 public class InviteResponseDto
 {
-    public string InviteCode { get; init; }
+    public int InviteCode { get; init; }
 }

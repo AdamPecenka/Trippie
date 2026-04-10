@@ -50,7 +50,7 @@ public class InviteService : IInviteService
             });
         }
 
-        var code = GenerateInviteCode();
+        var code = RandomNumberGenerator.GetInt32(100000, 999999);
 
         var invite = new TripInvite
         {
@@ -68,7 +68,7 @@ public class InviteService : IInviteService
         });
     }
     
-    public async Task<ServiceResult<JoinTripResponseDto>> JoinTrip(Guid userId, Guid tripId, string inviteCode)
+    public async Task<ServiceResult<JoinTripResponseDto>> JoinTrip(Guid userId, Guid tripId, int inviteCode)
     {
         var trip = await _context.Trips.SingleOrDefaultAsync(t => t.Id == tripId);
 
@@ -118,15 +118,5 @@ public class InviteService : IInviteService
             TripId = trip.Id,
             TripName = trip.Name
         });
-    }
-
-    private static string GenerateInviteCode()
-    {
-        var bytes = RandomNumberGenerator.GetBytes(32);
-        return Convert.ToBase64String(bytes)
-            .Replace("+", "")
-            .Replace("/", "")
-            .Replace("=", "")
-            .Substring(0, 12);
     }
 }

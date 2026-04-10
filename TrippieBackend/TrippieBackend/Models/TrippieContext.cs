@@ -43,7 +43,7 @@ public class TrippieContext : DbContext
             entity.Property(u => u.Firstname).HasColumnName("firstname").HasMaxLength(50).IsRequired();
             entity.Property(u => u.Lastname).HasColumnName("lastname").HasMaxLength(50).IsRequired();
             entity.Property(u => u.Email).HasColumnName("email").HasMaxLength(320).IsRequired();
-            entity.Property(u => u.PhoneNumber).HasColumnName("phone_number").HasMaxLength(20).IsRequired();
+            entity.Property(u => u.PhoneNumber).HasColumnName("phone_number").HasMaxLength(20);
             entity.Property(u => u.PasswordHash).HasColumnName("password_hash").IsRequired();
             entity.Property(u => u.Theme).HasColumnName("theme").HasDefaultValue(ThemeEnum.LIGHT);
             entity.Property(u => u.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("now()");
@@ -166,7 +166,7 @@ public class TrippieContext : DbContext
             entity.Property(ti => ti.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
  
             entity.Property(ti => ti.TripId).HasColumnName("trip_id");
-            entity.Property(ti => ti.InviteCode).HasColumnName("invite_code").HasMaxLength(255);
+            entity.Property(i => i.InviteCode).HasColumnName("invite_code").HasColumnType("integer");
             entity.Property(ti => ti.CreatedBy).HasColumnName("created_by");
             entity.Property(ti => ti.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("now()");
             entity.Property(ti => ti.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("now()");
