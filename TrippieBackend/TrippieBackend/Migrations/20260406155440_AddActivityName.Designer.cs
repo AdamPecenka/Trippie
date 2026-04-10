@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TrippieBackend.Models;
@@ -12,9 +13,11 @@ using TrippieBackend.Models.Enums;
 namespace TrippieBackend.Migrations
 {
     [DbContext(typeof(TrippieContext))]
-    partial class TrippieContextModelSnapshot : ModelSnapshot
+    [Migration("20260406155440_AddActivityName")]
+    partial class AddActivityName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -474,8 +477,9 @@ namespace TrippieBackend.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("created_by");
 
-                    b.Property<int>("InviteCode")
-                        .HasColumnType("integer")
+                    b.Property<string>("InviteCode")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("invite_code");
 
                     b.Property<Guid?>("TripId")
@@ -589,6 +593,7 @@ namespace TrippieBackend.Migrations
                         .HasColumnName("password_hash");
 
                     b.Property<string>("PhoneNumber")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("phone_number");

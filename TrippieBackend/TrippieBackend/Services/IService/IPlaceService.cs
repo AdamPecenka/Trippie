@@ -8,4 +8,6 @@ public interface IPlaceService
     public Task<ServiceResult<List<PlaceSuggestionDto>>> Autocomplete(string query, double? lat, double? lng);
 
     public Task<ServiceResult<PlaceDto>> Resolve(string googlePlaceId);
+    
+    public Task<ServiceResult<PlaceDto>> GetPlace(Guid placeId);
 }

@@ -122,6 +122,17 @@ public class PlaceService : IPlaceService
         return ServiceResult<PlaceDto>.Ok(MapToDto(place));
     }
     
+    public async Task<ServiceResult<PlaceDto>> GetPlace(Guid placeId)
+    {
+        var place = await _context.Places.SingleOrDefaultAsync(x => x.Id == placeId);
+
+        if (place == null)
+            return ServiceResult<PlaceDto>.Fail(404, AppErrorEnum.Place_Not_Found.ToString());
+
+        return ServiceResult<PlaceDto>.Ok(MapToDto(place));
+    }
+    
+    
     
     private PlaceDto MapToDto(Place place)
     {
