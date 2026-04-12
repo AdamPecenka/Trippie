@@ -6,8 +6,7 @@
 - User is populated on every endpoint automatically. Just use it directly
     - `var userId = Utils.GetUserId(User)` 
         - User je tohto typu `public ClaimsPrincipal User { get; } in class Microsoft.AspNetCore.Mvc.ControllerBase`
-- toto treba spustit pri kazdej zmene routera
-    - `dart run build_runner build --delete-conflicting-outputs`
+
 
 - Vytvaranie tripu zabezpecuju tri endpointy
     1. `POST /api/trips`
@@ -25,7 +24,6 @@
 - [x] `POST /api/auth/login`
 - [x] `POST /api/auth/logout`
 - [x] `POST /api/auth/refresh`
-- [x] `POST /api/auth/google`
 
 ### Users
 
@@ -34,7 +32,7 @@
 ~~- [ ] `DELETE /api/users/me` -> socketom update u ostatnych userov~~
 - [x] `PATCH /api/users/me/theme` -> socketom update pre UserId
 - [x] `PUT /api/users/me/avatar` -> socketom update u ostatnych userov
-- [x] `GET /api/users/me/avatar`
+- [ ] `GET /api/users/me/avatar`
 
 ### Trips
 
@@ -52,10 +50,13 @@
 
 ### Invites
 
-- [x] `POST /api/trips/:tripId/invites`
+- [x] `POST /api/trips/:tripId/invites` -> Socketom poslat invite
 - [x] `POST /api/trips/:tripId/invites/:inviteCode/join` -> Socketom pridat do tripu, updatnut u vsetkych clenoch
 
 ### Activities
+
+                    - Johannka
+
 - [x] `GET /api/trips/:tripId/activities`
 - [x] `POST /api/trips/:tripId/activities` -> socketom update u ostatnych clenov tripu
 - [x] `GET /api/trips/:tripId/activities/:activityId`
@@ -71,26 +72,27 @@
 
 ### Flights
 
-- [x] `GET /api/trips/:tripId/flights`
-- [x] `POST /api/trips/:tripId/flights`
-- [x] `PATCH /api/trips/:tripId/flights/:flightId`
-- [x] `DELETE /api/trips/:tripId/flights/:flightId`
+- [x] `GET /api/trips/:tripId/flights`                    - Johannka
+- [x] `POST /api/trips/:tripId/flights`                    - Johannka  
+- [x] `PATCH /api/trips/:tripId/flights/:flightId`                    - Johannka
+- [x] `DELETE /api/trips/:tripId/flights/:flightId`                    - Johannka
 
 ### Location
 
-- [x] `POST /api/location/trips/:tripId/me`
+- Johannka
+- [x] `POST /api/location/trips/:tripId/me` -> Moja posledna lokacia pred odpojenim, inak cez socket y
 
 ### Favorites
 
-- [x] `GET /api/favorites`
-- [x] `POST /api/favorites` -> Socketom pre UserId
-- [x] `DELETE /api/favorites/:placeId`-> Socketom pre UserId
+- [x] `GET /api/favorites`                     - Johannka
+- [x] `POST /api/favorites` -> Socketom pre UserId                     - Johannka
+- [x] `DELETE /api/favorites/:placeId`-> Socketom pre UserId                    - Johannka
 
 ### Places
 
 - [x] `POST /api/places/resolve`
 - [x] `GET /api/places/search?query=_&lat=_&lng=_`
-- [x] `GET /api/places/:placeId`
+- [x] `GET /api/places/:placeId`                    - Johannka
 
 ### Airports
 
@@ -102,19 +104,20 @@
 
 ### Client → Server
 
-- [x] `trip:join_room`
+- [ ] `trip:join_room`
 - [ ] `trip:leave_room`
 - [ ] `location:update`
 
 ### Server → Client
 
 - [ ] `location:member_moved`
-- [x] `trip:member_joined`
-- [x] `trip:member_left`
+- [ ] `trip:member_joined`
+- [ ] `trip:member_left`
 - [ ] `trip:status_changed`
 - [ ] `activity:created`
 - [ ] `activity:updated`
 - [ ] `activity:deleted`
+- [ ] `invite:used`
 
 # Doporucena folder structure
 
