@@ -134,19 +134,26 @@ public class Program {
         var app = builder.Build();
 
         //Uncomment this only when you want to seed or migrate, otherwise leave commented
-        // using (var scope = app.Services.CreateScope())
-        // {
-        //     try
-        //     {
-        //         var db = scope.ServiceProvider.GetRequiredService<TrippieContext>();
-        //         await db.Database.MigrateAsync();
-        //         await db.Database.EnsureCreatedAsync();
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         Console.WriteLine($"[!] Unhandled: {ex}");
-        //     }
-        // }
+        using (var scope = app.Services.CreateScope())
+        {
+            try
+            {
+                var db = scope.ServiceProvider.GetRequiredService<TrippieContext>();
+                await db.Database.MigrateAsync();
+                await db.Database.EnsureCreatedAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[!] Unhandled: {ex}");
+            }
+        }
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<TrippieContext>();
+            await db.Database.MigrateAsync();
+            await db.Database.EnsureCreatedAsync();
+        }
+>>>>>>> df2b7b5 (pridanie name do ActivitySeeder)
         
         app.Use(async (ctx, next) =>
         {
