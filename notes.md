@@ -52,18 +52,15 @@
 
 ### Invites
 
-- [x] `POST /api/trips/:tripId/invites` -> Socketom poslat invite
+- [x] `POST /api/trips/:tripId/invites`
 - [x] `POST /api/trips/:tripId/invites/:inviteCode/join` -> Socketom pridat do tripu, updatnut u vsetkych clenoch
 
 ### Activities
-
-                    - Johannka
-
-- [ ] `GET /api/trips/:tripId/activities`
-- [ ] `POST /api/trips/:tripId/activities` -> socketom update u ostatnych clenov tripu
-- [ ] `GET /api/trips/:tripId/activities/:activityId`
-- [ ] `PATCH /api/trips/:tripId/activities/:activityId` -> socketom update u ostatnych clenov tripu
-- [ ] `DELETE /api/trips/:tripId/activities/:activityId` -> socketom update u ostatnych clenov tripu
+- [x] `GET /api/trips/:tripId/activities`
+- [x] `POST /api/trips/:tripId/activities` -> socketom update u ostatnych clenov tripu
+- [x] `GET /api/trips/:tripId/activities/:activityId`
+- [x] `PATCH /api/trips/:tripId/activities/:activityId` -> socketom update u ostatnych clenov tripu
+- [x] `DELETE /api/trips/:tripId/activities/:activityId` -> socketom update u ostatnych clenov tripu
 
 ### Accommodations
 
@@ -74,27 +71,26 @@
 
 ### Flights
 
-- [ ] `GET /api/trips/:tripId/flights`                    - Johannka
-- [ ] `POST /api/trips/:tripId/flights`                    - Johannka  
-- [ ] `PATCH /api/trips/:tripId/flights/:flightId`                    - Johannka
-- [ ] `DELETE /api/trips/:tripId/flights/:flightId`                    - Johannka
+- [x] `GET /api/trips/:tripId/flights`
+- [x] `POST /api/trips/:tripId/flights`
+- [x] `PATCH /api/trips/:tripId/flights/:flightId`
+- [x] `DELETE /api/trips/:tripId/flights/:flightId`
 
 ### Location
 
-- Johannka
-- [ ] `POST /api/location/trips/:tripId/me` -> Moja posledna lokacia pred odpojenim, inak cez socket y
+- [x] `POST /api/location/trips/:tripId/me`
 
 ### Favorites
 
-- [ ] `GET /api/favorites`                     - Johannka
-- [ ] `POST /api/favorites` -> Socketom pre UserId                     - Johannka
-- [ ] `DELETE /api/favorites/:placeId`-> Socketom pre UserId                    - Johannka
+- [x] `GET /api/favorites`
+- [x] `POST /api/favorites` -> Socketom pre UserId
+- [x] `DELETE /api/favorites/:placeId`-> Socketom pre UserId
 
 ### Places
 
 - [x] `POST /api/places/resolve`
 - [x] `GET /api/places/search?query=_&lat=_&lng=_`
-- [ ] `GET /api/places/:placeId`                    - Johannka
+- [x] `GET /api/places/:placeId`
 
 ### Airports
 
@@ -106,20 +102,19 @@
 
 ### Client → Server
 
-- [ ] `trip:join_room`
+- [x] `trip:join_room`
 - [ ] `trip:leave_room`
 - [ ] `location:update`
 
 ### Server → Client
 
 - [ ] `location:member_moved`
-- [ ] `trip:member_joined`
-- [ ] `trip:member_left`
+- [x] `trip:member_joined`
+- [x] `trip:member_left`
 - [ ] `trip:status_changed`
 - [ ] `activity:created`
 - [ ] `activity:updated`
 - [ ] `activity:deleted`
-- [ ] `invite:used`
 
 # Doporucena folder structure
 

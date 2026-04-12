@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using TrippieBackend.Hubs;
 using TrippieBackend.Models;
 using TrippieBackend.Models.DTOs;
 using TrippieBackend.Models.DTOs.Members;
@@ -10,10 +12,12 @@ namespace TrippieBackend.Services.Service;
 public class TripMemberService: ITripMemberService
 {
     private readonly TrippieContext _context;
+    private readonly IHubContext<TripHub> _hubContext;
 
-    public TripMemberService(TrippieContext context)
+    public TripMemberService(TrippieContext context,  IHubContext<TripHub> hubContext)
     {
         _context = context;
+        _hubContext = hubContext;
     }
     
     public async Task<ServiceResult<List<TripMemberDto>>> GetTripMembers(Guid userId, Guid tripId)
@@ -73,8 +77,15 @@ public class TripMemberService: ITripMemberService
         _context.TripMembers.Remove(member);
         await _context.SaveChangesAsync();
 
-        // TODO: SignalR -> broadcast trip:member_left to trip room
+        await _hubContext.Clients
+            .Group($"trip:{tripId}")
+            .SendAsync("trip:member_left", new MemberLeftTripEventDto
+            {
+                UserId = userId,
+            });
 
+        Console.WriteLine($"[-] member left | user:{userId} trip:{tripId}");
+        
         return ServiceResult<bool>.Ok(true);
     }
 }

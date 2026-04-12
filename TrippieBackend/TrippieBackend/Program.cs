@@ -136,9 +136,16 @@ public class Program {
         //Uncomment this only when you want to seed or migrate, otherwise leave commented
         // using (var scope = app.Services.CreateScope())
         // {
-        //     var db = scope.ServiceProvider.GetRequiredService<TrippieContext>();
-        //     await db.Database.MigrateAsync();
-        //     await db.Database.EnsureCreatedAsync();
+        //     try
+        //     {
+        //         var db = scope.ServiceProvider.GetRequiredService<TrippieContext>();
+        //         await db.Database.MigrateAsync();
+        //         await db.Database.EnsureCreatedAsync();
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Console.WriteLine($"[!] Unhandled: {ex}");
+        //     }
         // }
         
         app.Use(async (ctx, next) =>
