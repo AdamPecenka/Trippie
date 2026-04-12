@@ -8,16 +8,6 @@ namespace TrippieBackend.Hubs;
 public class TripHub : Hub
 {
     private static readonly ConcurrentDictionary<string, List<string>> _connectionRooms = new();
-
-    public async Task TestMethod()
-    {
-        for (int i = 0; i < 10; i++)
-        {
-            Console.WriteLine($"[i] sending test event #{i}");
-            await Clients.Caller.SendAsync("test:event", new { Index = i, Message = $"ping {i}" });
-            await Task.Delay(500);
-        }
-    }
     
     public override async Task OnConnectedAsync()
     {
@@ -50,5 +40,32 @@ public class TripHub : Hub
         }
 
         await base.OnDisconnectedAsync(exception);
+    }
+    
+    
+    [HubMethodName("trip:join_room")]
+    public async Task JoinRoom(string tripId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"trip:{tripId}");
+
+        if (_connectionRooms.TryGetValue(Context.ConnectionId, out var rooms))
+        {
+            rooms.Add(tripId);
+        }
+
+        Console.WriteLine($"[+] joined room | user:{Context.UserIdentifier} trip:{tripId}");
+    }
+    
+    [HubMethodName("trip:leave_room")]
+    public async Task LeaveRoom(string tripId)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"trip:{tripId}");
+
+        if (_connectionRooms.TryGetValue(Context.ConnectionId, out var rooms))
+        {
+            rooms.Remove(tripId);
+        }
+
+        Console.WriteLine($"[-] left room | user:{Context.UserIdentifier} trip:{tripId}");
     }
 }

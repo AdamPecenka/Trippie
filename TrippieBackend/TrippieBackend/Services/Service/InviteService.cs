@@ -1,5 +1,7 @@
 ﻿using System.Security.Cryptography;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using TrippieBackend.Hubs;
 using TrippieBackend.Models;
 using TrippieBackend.Models.DTOs.Invites;
 using TrippieBackend.Models.Enums;
@@ -11,10 +13,12 @@ namespace TrippieBackend.Services.Service;
 public class InviteService : IInviteService
 {
     private readonly TrippieContext _context;
+    private readonly IHubContext<TripHub> _hubContext;
 
-    public InviteService(TrippieContext context)
+    public InviteService(TrippieContext context,  IHubContext<TripHub> hubContext)
     {
         _context = context;
+        _hubContext = hubContext;
     }
 
     public async Task<ServiceResult<InviteResponseDto>> GetOrCreateInviteCode(Guid userId, Guid tripId)
@@ -111,7 +115,21 @@ public class InviteService : IInviteService
         await _context.TripMembers.AddAsync(member);
         await _context.SaveChangesAsync();
 
-        // TODO: SignalR -> broadcast trip:member_joined to trip room
+        var newTripMember = await _context.Users.SingleAsync(u => u.Id == userId);
+
+        await _hubContext.Clients
+            .Group($"trip:{tripId}")
+            .SendAsync("trip:member_joined", new MemberJoinedTripEventDto
+            {
+                UserId = userId,
+                Firstname = newTripMember.Firstname,
+                Lastname = newTripMember.Lastname,
+                Email = newTripMember.Email,
+                PhoneNumber = newTripMember.PhoneNumber,
+                TripRole = TripRoleEnum.TRIP_MEMBER.ToString(),
+            });
+        
+        Console.WriteLine($"[+] member joined | user:{userId} trip:{tripId}");
 
         return ServiceResult<JoinTripResponseDto>.Ok(new JoinTripResponseDto
         {
