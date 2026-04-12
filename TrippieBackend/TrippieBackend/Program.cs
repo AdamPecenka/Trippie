@@ -153,7 +153,6 @@ public class Program {
             await db.Database.MigrateAsync();
             await db.Database.EnsureCreatedAsync();
         }
->>>>>>> df2b7b5 (pridanie name do ActivitySeeder)
         
         app.Use(async (ctx, next) =>
         {
