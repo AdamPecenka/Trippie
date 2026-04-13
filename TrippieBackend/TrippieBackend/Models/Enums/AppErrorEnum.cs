@@ -46,6 +46,8 @@ public enum AppErrorEnum
     
     // --- Activities ---
     Activity_Not_Found,
+    Activity_Edit_Forbidden,
+    Activity_Delete_Forbidden,
     
     // --- Airport ---
     Airport_Not_Found,
