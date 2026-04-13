@@ -35,6 +35,7 @@ public static class ActivitySeeder
         await db.Set<Activity>().AddRangeAsync(
             new Activity
             {
+                TripId = seededTrip.Id,
                 PlaceId = whiteRabbitPlaceId,
                 Name = "Museum",
                 ActivityDate = DateOnly.FromDateTime(seededTrip.StartDate),
@@ -47,7 +48,7 @@ public static class ActivitySeeder
             {
                 TripId = seededTrip.Id,
                 PlaceId = onefamPlaceId,
-                Name = null,
+                Name = "Obedik",
                 ActivityDate = DateOnly.FromDateTime(seededTrip.StartDate.AddDays(1)),
                 StartTime = new TimeOnly(14, 0),
                 EndTime = new TimeOnly(16, 30),
