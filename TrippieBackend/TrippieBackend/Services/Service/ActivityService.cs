@@ -86,17 +86,39 @@ public class ActivityService : IActivityService
     
     public async Task<ServiceResult<bool>> PatchActivity(Guid userId, Guid tripId, Guid activityId, PatchActivityRequestDto request)
     {
-        var isMember = await _context.TripMembers
-            .AnyAsync(tm => tm.TripId == tripId && tm.UserId == userId);
+        var member = await _context.TripMembers
+            .SingleOrDefaultAsync(tm => tm.TripId == tripId && tm.UserId == userId);
 
-        if (!isMember)
+        if (member == null)
             return ServiceResult<bool>.Fail(403, AppErrorEnum.Trip_Access_Denied.ToString());
+        
+        var trip = await _context.Trips.SingleOrDefaultAsync(t => t.Id == tripId);
 
         var activity = await _context.Activities
             .SingleOrDefaultAsync(a => a.Id == activityId && a.TripId == tripId);
 
         if (activity == null)
             return ServiceResult<bool>.Fail(404, AppErrorEnum.Activity_Not_Found.ToString());
+        
+        var isManager = member.TripRole == TripRoleEnum.TRIP_MANAGER;
+        var isOwner = activity.CreatedBy == userId;
+        var isPlanning = trip!.TripStatus == TripStatusEnum.PLANNING;
+        var isActive = trip.TripStatus == TripStatusEnum.ACTIVE;
+
+        // MANAGER: môže editovať všetko v PLANNING aj ACTIVE
+        // MEMBER: môže editovať iba svoju aktivitu a iba v PLANNING
+        if (isManager && (isPlanning || isActive))
+        {
+            // ok
+        }
+        else if (!isManager && isOwner && isPlanning)
+        {
+            // ok
+        }
+        else
+        {
+            return ServiceResult<bool>.Fail(403, AppErrorEnum.Activity_Edit_Forbidden.ToString());
+        }
 
         if (request.Name != null) activity.Name = request.Name;
         if (request.PlaceId != null) activity.PlaceId = request.PlaceId;
@@ -114,18 +136,38 @@ public class ActivityService : IActivityService
     
     public async Task<ServiceResult<bool>> DeleteActivity(Guid userId, Guid tripId, Guid activityId)
     {
-        var isMember = await _context.TripMembers
-            .AnyAsync(tm => tm.TripId == tripId && tm.UserId == userId);
+        var member = await _context.TripMembers
+            .SingleOrDefaultAsync(tm => tm.TripId == tripId && tm.UserId == userId);
 
-        if (!isMember)
+        if (member == null)
             return ServiceResult<bool>.Fail(403, AppErrorEnum.Trip_Access_Denied.ToString());
+
+        var trip = await _context.Trips.SingleOrDefaultAsync(t => t.Id == tripId);
 
         var activity = await _context.Activities
             .SingleOrDefaultAsync(a => a.Id == activityId && a.TripId == tripId);
 
         if (activity == null)
-            return ServiceResult<bool>.Fail(404, AppErrorEnum.Activity_Not_Found.ToString());
+            return ServiceResult<bool>.Fail(403, AppErrorEnum.Activity_Delete_Forbidden.ToString());
+        
+        var isManager = member.TripRole == TripRoleEnum.TRIP_MANAGER;
+        var isOwner = activity.CreatedBy == userId;
+        var isPlanning = trip!.TripStatus == TripStatusEnum.PLANNING;
+        var isActive = trip.TripStatus == TripStatusEnum.ACTIVE;
 
+        if (isManager && (isPlanning || isActive))
+        {
+            // ok
+        }
+        else if (!isManager && isOwner && isPlanning)
+        {
+            // ok
+        }
+        else
+        {
+            return ServiceResult<bool>.Fail(403, AppErrorEnum.Trip_Access_Denied.ToString());
+        }
+        
         _context.Activities.Remove(activity);
         await _context.SaveChangesAsync();
 
