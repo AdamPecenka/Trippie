@@ -27,12 +27,12 @@
 
 ### Users
 
-- [x] `GET /api/users/me`
-- [x] `PUT /api/users/me` -> socketom update u ostatnych userov
-~~- [ ] `DELETE /api/users/me` -> socketom update u ostatnych userov~~
-- [x] `PATCH /api/users/me/theme` -> socketom update pre UserId
-- [x] `PUT /api/users/me/avatar` -> socketom update u ostatnych userov
-- [ ] `GET /api/users/me/avatar`
+- [x] `GET /api/user/me`
+- [x] `PUT /api/user/me` -> socketom update u ostatnych userov
+~~- [ ] `DELETE /api/user/me` -> socketom update u ostatnych userov~~
+- [x] `PATCH /api/user/me/theme` -> socketom update pre UserId
+- [x] `PUT /api/user/me/avatar` -> socketom update u ostatnych userov
+- [ ] `GET /api/user/me/avatar`
 
 ### Trips
 

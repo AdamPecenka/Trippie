@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 abstract final class AppColors {
   // Gradient stops (light mode)
-  static const Color gradientTop = Color(0xFFE8D5B7);    // warm beige
+  static const Color gradientTop = Color(0xFFE8D5B7); // warm beige
   static const Color gradientBottom = Color(0xFFCBC3E8); // soft lavender
 
   // Surface
@@ -36,14 +36,16 @@ abstract final class AppColors {
   static const Color accent = Color(0xFF5B8DEF);
 
   // Dark mode equivalents
-  static const Color darkGradientTop = Color(0xFF2A2420);
-  static const Color darkGradientBottom = Color(0xFF1E1B2E);
+  static const Color darkGradientTop = Color(0xFF2E1F1A);
+  static const Color darkGradientBottom = Color(0xFF1E1525);
   static const Color darkCardBackground = Color(0xFF2C2C2E);
   static const Color darkTextPrimary = Color(0xFFF2F2F7);
   static const Color darkTextSecondary = Color(0xFFAEAEB2);
   static const Color darkInputFill = Color(0xFF3A3A3C);
   static const Color darkInputBorder = Color(0xFF48484A);
   static const Color darkNavbarBackground = Color(0xFF1C1C1E);
+  static const Color darkNavbarSelected = Color(0xFFF2F2F7);
+  static const Color darkNavbarUnselected = Color(0xFF636366);
 }
 
 abstract final class AppGradients {
@@ -72,6 +74,8 @@ abstract final class AppTheme {
         onPrimary: AppColors.buttonPrimaryText,
         surface: AppColors.cardBackground,
         onSurface: AppColors.textPrimary,
+        inverseSurface: AppColors.buttonPrimary,
+        onInverseSurface: Colors.white,
       ),
       textTheme: _textTheme(AppColors.textPrimary),
       inputDecorationTheme: _inputDecorationTheme(
@@ -85,10 +89,7 @@ abstract final class AppTheme {
           foregroundColor: AppColors.buttonPrimaryText,
           minimumSize: const Size(double.infinity, 54),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -97,18 +98,20 @@ abstract final class AppTheme {
           minimumSize: const Size(double.infinity, 54),
           shape: const StadiumBorder(),
           side: const BorderSide(color: AppColors.inputBorder, width: 1.5),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
       cardTheme: CardThemeData(
         color: AppColors.cardBackground,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.buttonPrimary,
+        contentTextStyle: const TextStyle(color: Colors.white),
+        behavior: SnackBarBehavior.floating,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -137,10 +140,7 @@ abstract final class AppTheme {
           foregroundColor: AppColors.darkCardBackground,
           minimumSize: const Size(double.infinity, 54),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -149,18 +149,18 @@ abstract final class AppTheme {
           minimumSize: const Size(double.infinity, 54),
           shape: const StadiumBorder(),
           side: const BorderSide(color: AppColors.darkInputBorder, width: 1.5),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
       cardTheme: CardThemeData(
         color: AppColors.darkCardBackground,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: Color(0xFF2C2C2E),
+        contentTextStyle: TextStyle(color: Colors.white),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }

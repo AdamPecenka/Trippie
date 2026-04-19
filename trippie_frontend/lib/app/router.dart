@@ -5,6 +5,7 @@ import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
 import 'package:trippie_frontend/features/auth/presentation/login_screen.dart';
 import 'package:trippie_frontend/features/auth/presentation/register_screen.dart';
 import 'package:trippie_frontend/features/auth/presentation/splash_screen.dart';
+import 'package:trippie_frontend/features/profile/presentation/my_account_screen.dart';
 import 'package:trippie_frontend/features/trip/presentation/home_screen.dart';
 import 'package:trippie_frontend/features/map/presentation/map_screen.dart';
 import 'package:trippie_frontend/features/profile/presentation/profile_screen.dart';
@@ -14,19 +15,20 @@ import 'package:trippie_frontend/shared/widgets/bottom_navbar.dart';
 part 'router.g.dart';
 
 abstract final class AppRoutes {
-  static const String splash    = '/';
-  static const String login     = '/login';
-  static const String register  = '/register';
+  static const String splash = '/';
+  static const String login = '/login';
+  static const String register = '/register';
 
-  static const String home      = '/home';
-  static const String map       = '/map';
+  static const String home = '/home';
+  static const String map = '/map';
   static const String favorites = '/favorites';
-  static const String profile   = '/profile';
+  static const String profile = '/profile';
+  static const String myAccount = '/profile/account';
 
-  static const String tripDetail  = '/home/trip/:tripId';
-  static const String createTrip  = '/home/create';
+  static const String tripDetail = '/home/trip/:tripId';
+  static const String createTrip = '/home/create';
   static const String tripMembers = '/home/trip/:tripId/members';
-  static const String invite      = '/home/trip/:tripId/invite';
+  static const String invite = '/home/trip/:tripId/invite';
 }
 
 @riverpod
@@ -52,8 +54,7 @@ GoRouter router(Ref ref) {
         return null;
       }
 
-      final isAuthenticated =
-          authState is AsyncData && authState.value != null;
+      final isAuthenticated = authState is AsyncData && authState.value != null;
 
       if (!isAuthenticated && !isOnAuthScreen) {
         return AppRoutes.login;
@@ -78,12 +79,20 @@ GoRouter router(Ref ref) {
         path: AppRoutes.register,
         builder: (context, state) => const RegisterScreen(),
       ),
+      GoRoute(
+        path: '/profile/account',
+        builder: (context, state) => const MyAccountScreen(),
+      ),
 
       StatefulShellRoute.indexedStack(
-        builder: (BuildContext context, GoRouterState state,
-            StatefulNavigationShell navigationShell) {
-          return BottomNavbar(navigationShell: navigationShell);
-        },
+        builder:
+            (
+              BuildContext context,
+              GoRouterState state,
+              StatefulNavigationShell navigationShell,
+            ) {
+              return BottomNavbar(navigationShell: navigationShell);
+            },
         branches: [
           StatefulShellBranch(
             routes: [

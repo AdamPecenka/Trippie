@@ -301,26 +301,26 @@ class _OrDivider extends StatelessWidget {
 class _RegisterLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          "You don't have an account? ",
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-        ),
-        GestureDetector(
-          onTap: () => context.go(AppRoutes.register),
-          child: Text(
-            'Register Now',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.accent,
-              fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onTap: () => context.go(AppRoutes.register),
+      child: RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(
+          text: "You don't have an account? ",
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary,
+              ),
+          children: [
+            TextSpan(
+              text: 'Register Now',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

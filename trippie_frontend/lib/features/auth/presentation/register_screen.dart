@@ -356,26 +356,26 @@ class _PasswordField extends StatelessWidget {
 class _LoginLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          'Already have an account? ',
+    return GestureDetector(
+      onTap: () => context.go(AppRoutes.login),
+      child: RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(
+          text: 'Already have an account? ',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,
               ),
+          children: [
+            TextSpan(
+              text: 'Login',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ],
         ),
-        GestureDetector(
-          onTap: () => context.go(AppRoutes.login),
-          child: Text(
-            'Login',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.accent,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

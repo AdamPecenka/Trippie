@@ -1,51 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:trippie_frontend/app/router.dart';
 import 'package:trippie_frontend/core/theme/app_theme.dart';
 import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
-import 'package:trippie_frontend/shared/providers/fab_provider.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(fabProvider.notifier)
-          .set(
-            FloatingActionButton(
-              onPressed: () => context.go(AppRoutes.createTrip),
-              backgroundColor: AppColors.buttonPrimary,
-              foregroundColor: AppColors.buttonPrimaryText,
-              elevation: 4,
-              child: const Icon(Icons.add),
-            ),
-          );
-    });
-  }
-
-  @override
-  void dispose() {
-    ref.read(fabProvider.notifier).clear();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final user = ref
-        .watch(authProvider)
-        .when(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authProvider).when(
           data: (data) => data,
           loading: () => null,
-          error: (_, _) => null,
+          error: (_, __) => null,
         );
     final firstName = user?.firstname ?? '';
 

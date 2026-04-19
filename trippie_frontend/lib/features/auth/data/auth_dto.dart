@@ -1,16 +1,10 @@
 class LoginRequestDto {
-  const LoginRequestDto({
-    required this.email,
-    required this.password,
-  });
+  const LoginRequestDto({required this.email, required this.password});
 
   final String email;
   final String password;
 
-  Map<String, dynamic> toJson() => {
-        'email': email,
-        'password': password,
-      };
+  Map<String, dynamic> toJson() => {'email': email, 'password': password};
 }
 
 class RegisterRequestDto {
@@ -29,12 +23,12 @@ class RegisterRequestDto {
   final String password;
 
   Map<String, dynamic> toJson() => {
-        'firstName': firstName,
-        'lastName': lastName,
-        'email': email,
-        'phoneNumber': phoneNumber,
-        'password': password,
-      };
+    'firstName': firstName,
+    'lastName': lastName,
+    'email': email,
+    'phoneNumber': phoneNumber,
+    'password': password,
+  };
 }
 
 class UserDto {
@@ -43,7 +37,7 @@ class UserDto {
     required this.firstname,
     required this.lastname,
     required this.email,
-    required this.phoneNumber,
+    this.phoneNumber,
     required this.theme,
   });
 
@@ -51,7 +45,7 @@ class UserDto {
   final String firstname;
   final String lastname;
   final String email;
-  final String phoneNumber;
+  final String? phoneNumber;
   final String theme;
 
   factory UserDto.fromJson(Map<String, dynamic> json) {
@@ -60,7 +54,7 @@ class UserDto {
       firstname: json['firstname'] as String,
       lastname: json['lastname'] as String,
       email: json['email'] as String,
-      phoneNumber: json['phoneNumber'] as String,
+      phoneNumber: json['phoneNumber'] as String?,
       theme: json['theme'] as String,
     );
   }

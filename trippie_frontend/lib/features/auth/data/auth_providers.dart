@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trippie_frontend/features/auth/data/auth_dto.dart';
 import 'package:trippie_frontend/features/auth/data/auth_repository.dart';
@@ -9,7 +10,19 @@ part 'auth_providers.g.dart';
 
 @Riverpod(keepAlive: true)
 ApiService apiService(Ref ref) {
-  return ApiService();
+  final api = ApiService();
+  final auth = ref.watch(authServiceProvider);
+
+  api.onGetRefreshToken = () => auth.getRefreshToken();
+  api.onSaveTokens = (access, refresh) =>
+      auth.saveTokens(accessToken: access, refreshToken: refresh);
+  api.onClearTokens = () async {
+    await auth.clearTokens();
+    api.clearAuthToken();
+  };
+
+  api.setupRefreshInterceptor();
+  return api;
 }
 
 @Riverpod(keepAlive: true)
@@ -20,6 +33,22 @@ AuthService authService(Ref ref) {
 @Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) {
   return AuthRepository(apiService: ref.watch(apiServiceProvider));
+}
+
+@Riverpod(keepAlive: true)
+class ThemeNotifier extends _$ThemeNotifier {
+  @override
+  ThemeMode build() {
+    final user = ref.watch(authProvider).when(
+      data: (data) => data,
+      loading: () => null,
+      error: (_, __) => null,
+    );
+    return user?.theme == 'DARK' ? ThemeMode.dark : ThemeMode.light;
+  }
+
+  void setDark() => state = ThemeMode.dark;
+  void setLight() => state = ThemeMode.light;
 }
 
 @Riverpod(keepAlive: true)
@@ -35,7 +64,17 @@ class AuthNotifier extends _$AuthNotifier {
     }
 
     apiSvc.setAuthToken(accessToken);
-    return null; // TODO: fetch /api/users/me and return UserDto
+
+    try {
+      final response = await apiSvc.dio.get('/api/user/me');
+      final data = response.data as Map<String, dynamic>;
+      return UserDto.fromJson(data['data'] as Map<String, dynamic>);
+    } catch (e) {
+      debugPrint('[E] Failed to fetch user on startup: $e');
+      await authSvc.clearTokens();
+      apiSvc.clearAuthToken();
+      return null;
+    }
   }
 
   Future<void> login(String email, String password) async {
@@ -61,15 +100,10 @@ class AuthNotifier extends _$AuthNotifier {
     final apiSvc = ref.read(apiServiceProvider);
     final repo = ref.read(authRepositoryProvider);
 
-    // final googleSignIn = GoogleSignIn(
-    //   serverClientId: 'YOUR_WEB_APPLICATION_CLIENT_ID',
-    // );
-
     final googleSignIn = GoogleSignIn();
 
     final googleUser = await googleSignIn.signIn();
     if (googleUser == null) {
-      // User cancelled the sign-in
       return;
     }
 

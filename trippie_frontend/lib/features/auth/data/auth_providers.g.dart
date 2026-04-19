@@ -48,7 +48,7 @@ final class ApiServiceProvider
   }
 }
 
-String _$apiServiceHash() => r'ed7ff6ff3b36bbe4c46e658c61854138d19b6f20';
+String _$apiServiceHash() => r'8d874bfc44e76913885ea82768321f0d127daa06';
 
 @ProviderFor(authService)
 final authServiceProvider = AuthServiceProvider._();
@@ -132,6 +132,58 @@ final class AuthRepositoryProvider
 
 String _$authRepositoryHash() => r'4360708d050fd7310848c09b8bacbd06c426def6';
 
+@ProviderFor(ThemeNotifier)
+final themeProvider = ThemeNotifierProvider._();
+
+final class ThemeNotifierProvider
+    extends $NotifierProvider<ThemeNotifier, ThemeMode> {
+  ThemeNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'themeProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$themeNotifierHash();
+
+  @$internal
+  @override
+  ThemeNotifier create() => ThemeNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ThemeMode value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ThemeMode>(value),
+    );
+  }
+}
+
+String _$themeNotifierHash() => r'c558eb6338b5f231cf61bc7f1874c38349361619';
+
+abstract class _$ThemeNotifier extends $Notifier<ThemeMode> {
+  ThemeMode build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<ThemeMode, ThemeMode>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<ThemeMode, ThemeMode>,
+              ThemeMode,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(AuthNotifier)
 final authProvider = AuthNotifierProvider._();
 
@@ -156,7 +208,7 @@ final class AuthNotifierProvider
   AuthNotifier create() => AuthNotifier();
 }
 
-String _$authNotifierHash() => r'e88313c657abde99b78f1493685dccafec80304b';
+String _$authNotifierHash() => r'ef7d7ce3ca036c6f2e22ca90f826cf273c6d72b3';
 
 abstract class _$AuthNotifier extends $AsyncNotifier<UserDto?> {
   FutureOr<UserDto?> build();
