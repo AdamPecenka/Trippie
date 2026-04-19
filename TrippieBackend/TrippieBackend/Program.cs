@@ -48,10 +48,6 @@ public class Program {
                 await ActivitySeeder.SeedAsync(context, cancellationToken);        // → Trips, Places, Users
                 await FavoriteSeeder.SeedAsync(context, cancellationToken);        // → Users, Places
             })
-            // .UseLoggerFactory(LoggerFactory.Create(b =>
-            //     b.AddConsole()
-            //         .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)
-            // ))
             , ServiceLifetime.Transient, ServiceLifetime.Transient
         );
 
@@ -134,19 +130,19 @@ public class Program {
         var app = builder.Build();
 
         //Uncomment this only when you want to seed or migrate, otherwise leave commented
-        using (var scope = app.Services.CreateScope())
-        {
-            try
-            {
-                var db = scope.ServiceProvider.GetRequiredService<TrippieContext>();
-                await db.Database.MigrateAsync();
-                await db.Database.EnsureCreatedAsync();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[!] Unhandled: {ex}");
-            }
-        }
+        // using (var scope = app.Services.CreateScope())
+        // {
+        //     try
+        //     {
+        //         var db = scope.ServiceProvider.GetRequiredService<TrippieContext>();
+        //         await db.Database.MigrateAsync();
+        //         await db.Database.EnsureCreatedAsync();
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Console.WriteLine($"[!] Unhandled: {ex}");
+        //     }
+        // }
         
         app.Use(async (ctx, next) =>
         {
