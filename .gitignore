@@ -21,3 +21,18 @@ Misc/
 **/Storage/
 trippie_frontend/lib/core/config/app_config.dart
 trippie_frontend/android/app/src/main/res/values/strings.xml
+
+# Flutter generated
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/Flutter.podspec
+**/.flutter-plugins-dependencies
+**/.flutter-plugins
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# iOS generated
+**/ios/Pods/
+**/ios/Podfile.lock
