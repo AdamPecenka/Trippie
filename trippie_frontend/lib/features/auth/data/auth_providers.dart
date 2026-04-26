@@ -42,7 +42,7 @@ class ThemeNotifier extends _$ThemeNotifier {
     final user = ref.watch(authProvider).when(
       data: (data) => data,
       loading: () => null,
-      error: (_, __) => null,
+      error: (_, _) => null,
     );
     return user?.theme == 'DARK' ? ThemeMode.dark : ThemeMode.light;
   }

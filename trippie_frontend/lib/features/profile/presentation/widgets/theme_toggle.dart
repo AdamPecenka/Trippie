@@ -5,7 +5,7 @@ import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
 import 'package:trippie_frontend/features/profile/data/user_providers.dart';
 
 class ThemeToggle extends ConsumerStatefulWidget {
-  const ThemeToggle({required this.currentTheme});
+  const ThemeToggle({super.key, required this.currentTheme});
 
   final String currentTheme;
 

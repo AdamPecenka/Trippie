@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trippie_frontend/core/theme/app_theme.dart';
 
 class SettingsRow extends StatelessWidget {
-  const SettingsRow({
+  const SettingsRow({super.key, 
     required this.icon,
     required this.iconColor,
     required this.title,
