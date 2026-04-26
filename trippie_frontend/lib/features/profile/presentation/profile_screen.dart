@@ -19,7 +19,7 @@ class ProfileScreen extends ConsumerWidget {
         .when(
           data: (data) => data,
           loading: () => null,
-          error: (_, __) => null,
+          error: (_, _) => null,
         );
 
     return Scaffold(

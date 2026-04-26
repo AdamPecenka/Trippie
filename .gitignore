@@ -15,12 +15,13 @@ obj/
 # User secrets
 appsettings.Development.json
 appsettings.json
+trippie_frontend/ios/Runner/Secrets.swift
+trippie_frontend/android/app/src/main/res/values/secrets.xml
 
 # Misc
 Misc/
 **/Storage/
 trippie_frontend/lib/core/config/app_config.dart
-trippie_frontend/android/app/src/main/res/values/strings.xml
 
 # Flutter generated
 **/ios/Flutter/Generated.xcconfig

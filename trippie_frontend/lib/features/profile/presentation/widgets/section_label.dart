@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trippie_frontend/core/theme/app_theme.dart';
 
 class SectionLabel extends StatelessWidget {
-  const SectionLabel({required this.label});
+  const SectionLabel({super.key, required this.label});
 
   final String label;
 

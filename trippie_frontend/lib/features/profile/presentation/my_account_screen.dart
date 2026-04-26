@@ -32,7 +32,7 @@ class _MyAccountScreenState extends ConsumerState<MyAccountScreen> {
         .when(
           data: (data) => data,
           loading: () => null,
-          error: (_, __) => null,
+          error: (_, _) => null,
         );
     _firstNameController = TextEditingController(text: user?.firstname ?? '');
     _lastNameController = TextEditingController(text: user?.lastname ?? '');
@@ -81,7 +81,7 @@ class _MyAccountScreenState extends ConsumerState<MyAccountScreen> {
           .when(
             data: (data) => data,
             loading: () => null,
-            error: (_, __) => null,
+            error: (_, _) => null,
           );
       if (currentUser != null) {
         ref.read(authProvider.notifier).state = AsyncData(
@@ -186,7 +186,7 @@ class _MyAccountScreenState extends ConsumerState<MyAccountScreen> {
         .when(
           data: (data) => data,
           loading: () => null,
-          error: (_, __) => null,
+          error: (_, _) => null,
         );
 
     return Scaffold(
