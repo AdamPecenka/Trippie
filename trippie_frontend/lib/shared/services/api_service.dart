@@ -19,7 +19,7 @@ class ApiService {
       ),
     );
 
-    if (kDebugMode) {
+    if (kDebugMode || kProfileMode) {
       (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
         final client = HttpClient();
         client.badCertificateCallback = (cert, host, port) => true;
