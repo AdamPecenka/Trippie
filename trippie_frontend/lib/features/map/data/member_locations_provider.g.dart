@@ -41,7 +41,7 @@ final class MemberLocationsProvider
   }
 }
 
-String _$memberLocationsHash() => r'01f25b4bff5898bd86b97641bffc71922af9cb30';
+String _$memberLocationsHash() => r'cd7bd922964b99a3923a2f0c1fdc80bd861b0261';
 
 abstract class _$MemberLocations
     extends $Notifier<Map<String, MemberLocation>> {

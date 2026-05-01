@@ -12,6 +12,7 @@ import 'package:trippie_frontend/features/map/presentation/widgets/member_bottom
 import 'package:trippie_frontend/features/map/presentation/widgets/no_active_trip_banner.dart';
 import 'package:trippie_frontend/features/map/presentation/widgets/no_location_view.dart';
 import 'package:trippie_frontend/features/map/presentation/widgets/place_bottom_sheet.dart';
+import 'package:trippie_frontend/features/map/presentation/widgets/place_search_sheet.dart';
 import 'package:trippie_frontend/features/map/presentation/widgets/trip_header.dart';
 import 'package:trippie_frontend/features/trip/data/activity_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_dto.dart';
@@ -29,6 +30,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   GoogleMapController? _mapController;
   Set<Marker> _memberMarkers = {};
   final Map<String, BitmapDescriptor> _markerIconCache = {};
+  bool _searchActive = false;
 
   @override
   void initState() {
@@ -141,6 +143,37 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       setState(() {
         _memberMarkers = updated;
       });
+    }
+  }
+
+  Future<void> _openSearch() async {
+    final position = ref
+        .read(currentPositionProvider)
+        .when(data: (pos) => pos, loading: () => null, error: (_, __) => null);
+
+    final PlaceDto? place = await showModalBottomSheet<PlaceDto>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: PlaceSearchSheet(currentPosition: position),
+      ),
+    );
+
+    if (place == null) return;
+
+    _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(place.latitude, place.longitude),
+          zoom: 16,
+        ),
+      ),
+    );
+
+    if (mounted) {
+      _showPlaceBottomSheet(context, place);
     }
   }
 
@@ -264,6 +297,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                             ? AppColors.darkTextPrimary
                             : AppColors.textPrimary,
                       ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: MediaQuery.of(context).viewPadding.bottom + 112,
+                    right: 16,
+                    child: FloatingActionButton(
+                      heroTag: 'search',
+                      onPressed: _openSearch,
+                      backgroundColor: AppColors.buttonPrimary,
+                      foregroundColor: AppColors.buttonPrimaryText,
+                      child: const Icon(Icons.search),
                     ),
                   ),
                 ],
