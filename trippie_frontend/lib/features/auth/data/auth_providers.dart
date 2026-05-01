@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trippie_frontend/features/auth/data/auth_dto.dart';
 import 'package:trippie_frontend/features/auth/data/auth_repository.dart';
+import 'package:trippie_frontend/features/map/data/member_locations_provider.dart';
+import 'package:trippie_frontend/features/trip/data/trip_providers.dart';
+import 'package:trippie_frontend/shared/providers/trip_hub_provider.dart';
 import 'package:trippie_frontend/shared/services/api_service.dart';
 import 'package:trippie_frontend/shared/services/auth_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -39,11 +42,9 @@ AuthRepository authRepository(Ref ref) {
 class ThemeNotifier extends _$ThemeNotifier {
   @override
   ThemeMode build() {
-    final user = ref.watch(authProvider).when(
-      data: (data) => data,
-      loading: () => null,
-      error: (_, _) => null,
-    );
+    final user = ref
+        .watch(authProvider)
+        .when(data: (data) => data, loading: () => null, error: (_, _) => null);
     return user?.theme == 'DARK' ? ThemeMode.dark : ThemeMode.light;
   }
 
@@ -78,6 +79,9 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   Future<void> login(String email, String password) async {
+    ref.invalidate(tripsProvider);
+    ref.invalidate(memberLocationsProvider);
+
     final authSvc = ref.read(authServiceProvider);
     final apiSvc = ref.read(apiServiceProvider);
     final repo = ref.read(authRepositoryProvider);
@@ -96,6 +100,9 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   Future<void> googleLogin() async {
+    ref.invalidate(tripsProvider);
+    ref.invalidate(memberLocationsProvider);
+
     final authSvc = ref.read(authServiceProvider);
     final apiSvc = ref.read(apiServiceProvider);
     final repo = ref.read(authRepositoryProvider);
@@ -132,6 +139,9 @@ class AuthNotifier extends _$AuthNotifier {
     required String phoneNumber,
     required String password,
   }) async {
+    ref.invalidate(tripsProvider);
+    ref.invalidate(memberLocationsProvider);
+
     final authSvc = ref.read(authServiceProvider);
     final apiSvc = ref.read(apiServiceProvider);
     final repo = ref.read(authRepositoryProvider);
@@ -161,6 +171,13 @@ class AuthNotifier extends _$AuthNotifier {
 
     await authSvc.clearTokens();
     apiSvc.clearAuthToken();
+
+    // disconnect hub before invalidating
+    await ref.read(tripHubProvider).disconnect();
+
     state = const AsyncData(null);
+
+    ref.invalidate(tripsProvider);
+    ref.invalidate(memberLocationsProvider);
   }
 }

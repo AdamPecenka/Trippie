@@ -1,9 +1,14 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:trippie_frontend/app/router.dart';
 import 'package:trippie_frontend/core/theme/app_theme.dart';
+import 'package:trippie_frontend/features/map/data/member_location.dart';
+import 'package:trippie_frontend/features/map/data/member_locations_provider.dart';
+import 'package:trippie_frontend/features/map/presentation/widgets/member_bottom_sheet.dart';
 import 'package:trippie_frontend/features/map/presentation/widgets/no_active_trip_banner.dart';
 import 'package:trippie_frontend/features/map/presentation/widgets/no_location_view.dart';
 import 'package:trippie_frontend/features/map/presentation/widgets/place_bottom_sheet.dart';
@@ -22,6 +27,19 @@ class MapScreen extends ConsumerStatefulWidget {
 
 class _MapScreenState extends ConsumerState<MapScreen> {
   GoogleMapController? _mapController;
+  Set<Marker> _memberMarkers = {};
+  final Map<String, BitmapDescriptor> _markerIconCache = {};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final locations = ref.read(memberLocationsProvider);
+      if (locations.isNotEmpty) {
+        _rebuildMemberMarkers(locations);
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -44,10 +62,96 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
+  void _showMemberBottomSheet(BuildContext context, MemberLocation member) {
+    final position = ref
+        .read(currentPositionProvider)
+        .when(data: (pos) => pos, loading: () => null, error: (_, __) => null);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) =>
+          MemberBottomSheet(member: member, currentPosition: position),
+    );
+  }
+
+  Future<BitmapDescriptor> _buildInitialsMarker(
+    String initials, {
+    bool isOnline = true,
+  }) async {
+    const size = 96.0;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    canvas.drawCircle(
+      const Offset(size / 2, size / 2),
+      size / 2,
+      Paint()
+        ..color = isOnline ? const Color(0xFF6B5FA6) : const Color(0xFF9E9E9E),
+    );
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: initials,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 36,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset((size - textPainter.width) / 2, (size - textPainter.height) / 2),
+    );
+
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(size.toInt(), size.toInt());
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+
+    return BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
+  }
+
+  Future<void> _rebuildMemberMarkers(
+    Map<String, MemberLocation> locations,
+  ) async {
+    final updated = <Marker>{};
+
+    for (final loc in locations.values) {
+      final cacheKey = '${loc.userId}_${loc.isOnline}';
+      if (!_markerIconCache.containsKey(cacheKey)) {
+        _markerIconCache[cacheKey] = await _buildInitialsMarker(
+          loc.initials,
+          isOnline: loc.isOnline,
+        );
+      }
+      updated.add(
+        Marker(
+          markerId: MarkerId('member_${loc.userId}'),
+          position: LatLng(loc.latitude, loc.longitude),
+          icon: _markerIconCache[cacheKey]!,
+          onTap: () => _showMemberBottomSheet(context, loc),
+        ),
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        _memberMarkers = updated;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final tripsAsync = ref.watch(tripsProvider);
     final positionAsync = ref.watch(currentPositionProvider);
+
+    ref.listen(memberLocationsProvider, (_, next) {
+      _rebuildMemberMarkers(next);
+    });
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -57,7 +161,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         data: (trips) {
           final activeTrip = _getActiveTrip(trips);
           final activitiesAsync = activeTrip != null
-              ? ref.watch(tripActivitiesProvider(activeTrip.id))
+              ? ref.watch(activeTripActivitiesProvider(activeTrip.id))
               : null;
 
           return positionAsync.when(
@@ -94,6 +198,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   }
                 });
               }
+
+              markers.addAll(_memberMarkers);
 
               return Stack(
                 children: [

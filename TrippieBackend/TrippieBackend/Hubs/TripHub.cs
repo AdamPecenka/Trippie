@@ -68,4 +68,18 @@ public class TripHub : Hub
 
         Console.WriteLine($"[-] left room | user:{Context.UserIdentifier} trip:{tripId}");
     }
+    
+    [HubMethodName("location:update")]
+    public async Task UpdateLocation(string tripId, double latitude, double longitude)
+    {
+        await Clients.OthersInGroup($"trip:{tripId}").SendAsync("location:member_updated", new
+        {
+            UserId = Context.UserIdentifier,
+            TripId = tripId,
+            Latitude = latitude,
+            Longitude = longitude,
+        });
+
+        Console.WriteLine($"[~] location:update | user:{Context.UserIdentifier} trip:{tripId} lat:{latitude} lng:{longitude}");
+    }
 }

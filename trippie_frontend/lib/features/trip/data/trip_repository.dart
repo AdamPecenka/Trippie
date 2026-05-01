@@ -1,6 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:trippie_frontend/features/map/data/member_last_location_dto.dart';
+import 'package:trippie_frontend/features/trip/data/accommodation_dto.dart';
 import 'package:trippie_frontend/features/trip/data/activity_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_dto.dart';
+import 'package:trippie_frontend/features/trip/data/trip_member_dto.dart';
 import 'package:trippie_frontend/shared/services/api_service.dart';
 
 class TripRepository {
@@ -30,6 +33,49 @@ class TripRepository {
       final list = data['data'] as List<dynamic>;
       return list
           .map((e) => ActivityDto.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  Future<List<TripMemberDto>> getMembers(String tripId) async {
+    try {
+      final response = await apiService.dio.get('/api/trips/$tripId/members');
+      final data = response.data as Map<String, dynamic>;
+      final list = data['data'] as List<dynamic>;
+      return list
+          .map((e) => TripMemberDto.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  Future<AccommodationDto?> getAccommodation(String tripId) async {
+    try {
+      final response = await apiService.dio.get(
+        '/api/trips/$tripId/accommodations',
+      );
+      final data = response.data as Map<String, dynamic>;
+      return AccommodationDto.fromJson(data['data'] as Map<String, dynamic>);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      throw _mapError(e);
+    }
+  }
+
+  Future<List<MemberLastLocationDto>> getLastKnownLocations(
+    String tripId,
+  ) async {
+    try {
+      final response = await apiService.dio.get(
+        '/api/location/trips/$tripId/members',
+      );
+      final data = response.data as Map<String, dynamic>;
+      final list = data['data'] as List<dynamic>;
+      return list
+          .map((e) => MemberLastLocationDto.fromJson(e as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
       throw _mapError(e);

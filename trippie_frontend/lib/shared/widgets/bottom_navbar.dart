@@ -43,45 +43,52 @@ class BottomNavbar extends ConsumerWidget {
           24,
           MediaQuery.of(context).viewPadding.bottom + 8,
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(32),
-          child: Container(
-            height: 64,
+        child: Container(
+          height: 64,
+          decoration: BoxDecoration(
             color: Theme.of(context).brightness == Brightness.dark
                 ? AppColors.darkNavbarBackground
                 : AppColors.navbarBackground,
-            child: Row(
-              children: [
-                _NavItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home,
-                  label: 'Home',
-                  isSelected: navigationShell.currentIndex == 0,
-                  onTap: () => _onTabTapped(0),
-                ),
-                _NavItem(
-                  icon: Icons.map_outlined,
-                  activeIcon: Icons.map,
-                  label: 'Maps',
-                  isSelected: navigationShell.currentIndex == 1,
-                  onTap: () => _onTabTapped(1),
-                ),
-                _NavItem(
-                  icon: Icons.favorite_outline,
-                  activeIcon: Icons.favorite,
-                  label: 'Favorites',
-                  isSelected: navigationShell.currentIndex == 2,
-                  onTap: () => _onTabTapped(2),
-                ),
-                _NavItem(
-                  icon: Icons.person_outline,
-                  activeIcon: Icons.person,
-                  label: 'Profile',
-                  isSelected: navigationShell.currentIndex == 3,
-                  onTap: () => _onTabTapped(3),
-                ),
-              ],
-            ),
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              _NavItem(
+                icon: Icons.home_outlined,
+                activeIcon: Icons.home,
+                label: 'Home',
+                isSelected: navigationShell.currentIndex == 0,
+                onTap: () => _onTabTapped(0),
+              ),
+              _NavItem(
+                icon: Icons.map_outlined,
+                activeIcon: Icons.map,
+                label: 'Maps',
+                isSelected: navigationShell.currentIndex == 1,
+                onTap: () => _onTabTapped(1),
+              ),
+              _NavItem(
+                icon: Icons.favorite_outline,
+                activeIcon: Icons.favorite,
+                label: 'Favorites',
+                isSelected: navigationShell.currentIndex == 2,
+                onTap: () => _onTabTapped(2),
+              ),
+              _NavItem(
+                icon: Icons.person_outline,
+                activeIcon: Icons.person,
+                label: 'Profile',
+                isSelected: navigationShell.currentIndex == 3,
+                onTap: () => _onTabTapped(3),
+              ),
+            ],
           ),
         ),
       ),

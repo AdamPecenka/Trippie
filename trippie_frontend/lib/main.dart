@@ -1,12 +1,18 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trippie_frontend/app/app.dart';
-import 'package:trippie_frontend/features/trip/data/trip_providers.dart';
-import 'package:trippie_frontend/shared/providers/location_provider.dart';
 import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
+import 'package:trippie_frontend/features/trip/data/trip_providers.dart';
+import 'package:trippie_frontend/shared/services/location_sharing_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (kDebugMode) {
+    HttpOverrides.global = _DevHttpOverrides();
+  }
 
   FlutterError.onError = (details) {
     debugPrint('[E] Flutter error: ${details.exceptionAsString()}');
@@ -25,10 +31,13 @@ class _AppWithLifecycle extends ConsumerStatefulWidget {
 
 class _AppWithLifecycleState extends ConsumerState<_AppWithLifecycle>
     with WidgetsBindingObserver {
+  late final LocationSharingService _locationSharing;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _locationSharing = LocationSharingService(ref);
   }
 
   @override
@@ -41,53 +50,51 @@ class _AppWithLifecycleState extends ConsumerState<_AppWithLifecycle>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
-      _sendLastLocation();
+      _locationSharing.sendLastLocation();
     }
-  }
 
-  Future<void> _sendLastLocation() async {
-    try {
-      final locationService = ref.read(locationServiceProvider);
-      final position = await locationService.getCurrentPosition();
-      if (position == null) {
-        return;
-      }
-
-      final trips = ref
-          .read(tripsProvider)
-          .when(
-            data: (data) => data,
-            loading: () => null,
-            error: (_, __) => null,
-          );
-      if (trips == null || trips.isEmpty) {
-        return;
-      }
-
-      final activeTrips = trips.where((t) => t.tripStatus == 'ACTIVE').toList();
-      if (activeTrips.isEmpty) {
-        return;
-      }
-
-      final apiService = ref.read(apiServiceProvider);
-
-      for (final trip in activeTrips) {
-        await apiService.dio.post(
-          '/api/location/trips/${trip.id}/me',
-          data: {
-            'latitude': position.latitude,
-            'longitude': position.longitude,
-          },
-        );
-        debugPrint('[i] last location sent for trip: ${trip.id}');
-      }
-    } catch (e) {
-      debugPrint('[E] Failed to send last location: $e');
+    if (state == AppLifecycleState.resumed) {
+      _locationSharing.reconnectIfNeeded();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(authProvider, (previous, next) {
+      final wasLoggedIn = previous?.when(
+            data: (data) => data != null,
+            loading: () => false,
+            error: (_, __) => false,
+          ) ??
+          false;
+
+      final isNowLoggedOut = next.when(
+        data: (data) => data == null,
+        loading: () => false,
+        error: (_, __) => false,
+      );
+
+      if (wasLoggedIn && isNowLoggedOut) {
+        _locationSharing.resetOnLogout();
+      }
+    });
+
+    ref.listen(tripsProvider, (previous, next) {
+      next.whenData((trips) {
+        final wasLoading = previous == null || previous.isLoading;
+        if (!wasLoading) return;
+        _locationSharing.initHub(trips);
+      });
+    });
+
     return const App();
+  }
+}
+
+class _DevHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (cert, host, port) => true;
   }
 }

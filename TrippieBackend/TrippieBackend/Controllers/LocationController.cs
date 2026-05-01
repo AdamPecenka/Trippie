@@ -41,4 +41,30 @@ public class LocationController : ControllerBase
 
         return NoContent();
     }
+
+    /// <summary>Get last known locations of all members in a trip.</summary>
+    /// <param name="tripId">Trip identifier.</param>
+    /// <returns>List of member locations; lat/lng null if member has never shared location.</returns>
+    /// <response code="200">Member locations returned.</response>
+    /// <response code="403">Caller is not a member of the trip.</response>
+    [HttpGet("trips/{tripId:guid}/members")]
+    public async Task<IActionResult> GetTripMemberLocations([FromRoute] Guid tripId)
+    {
+        Guid userId = Utils.GetUserId(User);
+
+        var result = await _locationService.GetTripMemberLocations(userId, tripId);
+
+        if (!result.IsSuccess)
+        {
+            return StatusCode(result.Code, ApiResponse<object>.Failure(new ErrorDto
+            {
+                Status = "error",
+                Code = result.Code,
+                Message = result.Error!,
+                Field = result.Field
+            }));
+        }
+
+        return Ok(ApiResponse<List<MemberLocationDto>>.Success(result.Value!));
+    }
 }
