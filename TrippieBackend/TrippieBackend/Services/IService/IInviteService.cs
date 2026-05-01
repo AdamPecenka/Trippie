@@ -7,4 +7,5 @@ public interface IInviteService
 {
     public Task<ServiceResult<InviteResponseDto>> GetOrCreateInviteCode(Guid userId, Guid tripId);
     public Task<ServiceResult<JoinTripResponseDto>> JoinTrip(Guid userId, Guid tripId, int inviteCode);
+    Task<ServiceResult<JoinTripResponseDto>> JoinTripByCode(Guid userId, int inviteCode);
 }

@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:trippie_frontend/core/theme/app_theme.dart';
 import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
 import 'package:trippie_frontend/features/auth/presentation/login_screen.dart';
 import 'package:trippie_frontend/features/auth/presentation/register_screen.dart';
 import 'package:trippie_frontend/features/auth/presentation/splash_screen.dart';
 import 'package:trippie_frontend/features/profile/presentation/my_account_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/enter_code_screen.dart';
 import 'package:trippie_frontend/features/trip/presentation/home_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/invite_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/join_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/join_success_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/scan_qr_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/trip_detail_screen.dart';
 import 'package:trippie_frontend/features/map/presentation/map_screen.dart';
 import 'package:trippie_frontend/features/profile/presentation/profile_screen.dart';
 import 'package:trippie_frontend/features/profile/presentation/favorites_screen.dart';
@@ -25,10 +32,15 @@ abstract final class AppRoutes {
   static const String profile = '/profile';
   static const String myAccount = '/profile/account';
 
-  static const String tripDetail = '/home/trip/:tripId';
   static const String createTrip = '/home/create';
+  static const String joinTrip = '/home/join';
+  static const String tripDetail = '/home/trip/:tripId';
   static const String tripMembers = '/home/trip/:tripId/members';
   static const String invite = '/home/trip/:tripId/invite';
+  static const String createActivity = '/home/trip/:tripId/activity/create';
+  static const String scanQr = '/home/join/scan';
+  static const String enterCode = '/home/join/code';
+  static const String joinSuccess = '/home/join/success/:tripId/:tripName';
 }
 
 @riverpod
@@ -44,12 +56,10 @@ GoRouter router(Ref ref) {
           state.matchedLocation == AppRoutes.register ||
           state.matchedLocation == AppRoutes.splash;
 
-      // During initial session restore, stay on splash
       if (authState.isLoading && state.matchedLocation == AppRoutes.splash) {
         return null;
       }
 
-      // During login/register call, don't redirect away from auth screens
       if (authState.isLoading && isOnAuthScreen) {
         return null;
       }
@@ -80,7 +90,7 @@ GoRouter router(Ref ref) {
         builder: (context, state) => const RegisterScreen(),
       ),
       GoRoute(
-        path: '/profile/account',
+        path: AppRoutes.myAccount,
         builder: (context, state) => const MyAccountScreen(),
       ),
 
@@ -102,17 +112,53 @@ GoRouter router(Ref ref) {
                 routes: [
                   GoRoute(
                     path: 'create',
-                    builder: (context, state) => const Scaffold(
-                      body: Center(child: Text('Create Trip')),
+                    builder: (context, state) => Scaffold(
+                      backgroundColor: Colors.transparent,
+                      body: Container(
+                        decoration: BoxDecoration(
+                          gradient:
+                              Theme.of(context).brightness == Brightness.dark
+                              ? AppGradients.backgroundDark
+                              : AppGradients.background,
+                        ),
+                        child: const SafeArea(
+                          child: Center(child: Text('Create Trip')),
+                        ),
+                      ),
                     ),
+                  ),
+                  GoRoute(
+                    path: 'join',
+                    builder: (context, state) => const JoinScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'scan',
+                        builder: (context, state) => const ScanQrScreen(),
+                      ),
+                      GoRoute(
+                        path: 'code',
+                        builder: (context, state) => const EnterCodeScreen(),
+                      ),
+                      GoRoute(
+                        path: 'success/:tripId/:tripName',
+                        builder: (context, state) {
+                          final tripId = state.pathParameters['tripId']!;
+                          final tripName = Uri.decodeComponent(
+                            state.pathParameters['tripName']!,
+                          );
+                          return JoinSuccessScreen(
+                            tripId: tripId,
+                            tripName: tripName,
+                          );
+                        },
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'trip/:tripId',
                     builder: (context, state) {
                       final tripId = state.pathParameters['tripId']!;
-                      return Scaffold(
-                        body: Center(child: Text('Trip $tripId')),
-                      );
+                      return TripDetailScreen(tripId: tripId);
                     },
                     routes: [
                       GoRoute(
@@ -120,7 +166,19 @@ GoRouter router(Ref ref) {
                         builder: (context, state) {
                           final tripId = state.pathParameters['tripId']!;
                           return Scaffold(
-                            body: Center(child: Text('Members $tripId')),
+                            backgroundColor: Colors.transparent,
+                            body: Container(
+                              decoration: BoxDecoration(
+                                gradient:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppGradients.backgroundDark
+                                    : AppGradients.background,
+                              ),
+                              child: SafeArea(
+                                child: Center(child: Text('Members $tripId')),
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -128,8 +186,29 @@ GoRouter router(Ref ref) {
                         path: 'invite',
                         builder: (context, state) {
                           final tripId = state.pathParameters['tripId']!;
+                          return InviteScreen(tripId: tripId);
+                        },
+                      ),
+                      GoRoute(
+                        path: 'activity/create',
+                        builder: (context, state) {
+                          final tripId = state.pathParameters['tripId']!;
                           return Scaffold(
-                            body: Center(child: Text('Invite $tripId')),
+                            backgroundColor: Colors.transparent,
+                            body: Container(
+                              decoration: BoxDecoration(
+                                gradient:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppGradients.backgroundDark
+                                    : AppGradients.background,
+                              ),
+                              child: SafeArea(
+                                child: Center(
+                                  child: Text('Create Activity $tripId'),
+                                ),
+                              ),
+                            ),
                           );
                         },
                       ),

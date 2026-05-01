@@ -34,8 +34,8 @@ class HomeScreen extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, __) => Center(child: Text('Error: $e')),
             data: (trips) => _TripsList(
-              firstName: user?.firstname ?? '',
               trips: trips,
+              firstName: user?.firstname ?? '',
             ),
           ),
         ),
@@ -46,22 +46,21 @@ class HomeScreen extends ConsumerWidget {
 
 class _TripsList extends ConsumerWidget {
   const _TripsList({
-    required this.firstName,
     required this.trips,
+    required this.firstName,
   });
 
-  final String firstName;
   final List<TripDto> trips;
+  final String firstName;
 
   List<TripDto> get _upcoming => trips
-    .where((t) => t.tripStatus == 'PLANNING' || t.tripStatus == 'ACTIVE')
-    .toList()
-  ..sort((a, b) {
-    // ACTIVE before PLANNING
-    if (a.tripStatus == 'ACTIVE' && b.tripStatus != 'ACTIVE') return -1;
-    if (a.tripStatus != 'ACTIVE' && b.tripStatus == 'ACTIVE') return 1;
-    return a.startDate.compareTo(b.startDate);
-  });
+      .where((t) => t.tripStatus == 'PLANNING' || t.tripStatus == 'ACTIVE')
+      .toList()
+    ..sort((a, b) {
+      if (a.tripStatus == 'ACTIVE' && b.tripStatus != 'ACTIVE') return -1;
+      if (a.tripStatus != 'ACTIVE' && b.tripStatus == 'ACTIVE') return 1;
+      return a.startDate.compareTo(b.startDate);
+    });
 
   List<TripDto> get _history => trips
       .where((t) => t.tripStatus == 'FINISHED')

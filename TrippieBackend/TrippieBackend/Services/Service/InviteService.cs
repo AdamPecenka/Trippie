@@ -137,4 +137,64 @@ public class InviteService : IInviteService
             TripName = trip.Name
         });
     }
+
+    public async Task<ServiceResult<JoinTripResponseDto>> JoinTripByCode(Guid userId, int inviteCode)
+{
+    var invite = await _context.TripInvites
+        .Include(i => i.Trip)
+        .SingleOrDefaultAsync(i => i.InviteCode == inviteCode);
+
+    if (invite == null)
+    {
+        return ServiceResult<JoinTripResponseDto>.Fail(404, AppErrorEnum.Invite_Invalid_Code.ToString());
+    }
+
+    if (invite.Trip.TripStatus == TripStatusEnum.FINISHED)
+    {
+        return ServiceResult<JoinTripResponseDto>.Fail(409, AppErrorEnum.Trip_Already_Finished.ToString());
+    }
+
+    var alreadyMember = await _context.TripMembers
+        .AnyAsync(tm => tm.TripId == invite.TripId && tm.UserId == userId);
+
+    if (alreadyMember)
+    {
+        return ServiceResult<JoinTripResponseDto>.Fail(409, AppErrorEnum.Trip_Already_Member.ToString());
+    }
+
+    var member = new TripMember
+    {
+        TripId = invite.TripId!.Value,
+        UserId = userId,
+        TripRole = TripRoleEnum.TRIP_MEMBER,
+        JoinedAt = DateTime.UtcNow,
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    };
+
+    await _context.TripMembers.AddAsync(member);
+    await _context.SaveChangesAsync();
+
+    var newTripMember = await _context.Users.SingleAsync(u => u.Id == userId);
+
+    await _hubContext.Clients
+        .Group($"trip:{invite.TripId!.Value}")
+        .SendAsync("trip:member_joined", new MemberJoinedTripEventDto
+        {
+            UserId = userId,
+            Firstname = newTripMember.Firstname,
+            Lastname = newTripMember.Lastname,
+            Email = newTripMember.Email,
+            PhoneNumber = newTripMember.PhoneNumber,
+            TripRole = TripRoleEnum.TRIP_MEMBER.ToString(),
+        });
+
+    Console.WriteLine($"[+] member joined by code | user:{userId} trip:{invite.TripId!.Value}");
+
+    return ServiceResult<JoinTripResponseDto>.Ok(new JoinTripResponseDto
+    {
+        TripId = invite.TripId!.Value,
+        TripName = invite.Trip.Name
+    });
+}
 }

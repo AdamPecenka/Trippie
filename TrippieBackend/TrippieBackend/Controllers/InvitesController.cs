@@ -46,7 +46,7 @@ public class InvitesController : ControllerBase
 
         return Ok(ApiResponse<InviteResponseDto>.Success(result.Value!));
     }
-    
+
     /// <summary>Join a trip using an invite code.</summary>
     /// <param name="tripId">Trip ID</param>
     /// <param name="inviteCode">Invite code from QR or manual entry</param>
@@ -61,6 +61,35 @@ public class InvitesController : ControllerBase
         Guid userId = Utils.GetUserId(User);
 
         var result = await _inviteService.JoinTrip(userId, tripId, inviteCode);
+
+        if (!result.IsSuccess)
+        {
+            return StatusCode(result.Code, ApiResponse<object>.Failure(new ErrorDto
+            {
+                Status = "error",
+                Code = result.Code,
+                Message = result.Error!,
+                Field = result.Field
+            }));
+        }
+
+        return Ok(ApiResponse<JoinTripResponseDto>.Success(result.Value!));
+    }
+
+    /// <summary>Join a trip using only an invite code, no tripId required.</summary>
+    /// <param name="inviteCode">6-digit invite code</param>
+    /// <returns>Trip ID and name</returns>
+    /// <response code="200">Successfully joined the trip</response>
+    /// <response code="401">Token is missing or invalid</response>
+    /// <response code="404">Invite code not found</response>
+    /// <response code="409">Trip already finished or caller already a member</response>
+    [HttpPost("{inviteCode:int}")]
+    [Route("/api/invites/{inviteCode:int}/join")]
+    public async Task<IActionResult> JoinByCode([FromRoute] int inviteCode)
+    {
+        Guid userId = Utils.GetUserId(User);
+
+        var result = await _inviteService.JoinTripByCode(userId, inviteCode);
 
         if (!result.IsSuccess)
         {

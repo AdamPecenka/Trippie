@@ -15,6 +15,8 @@ abstract final class ErrorMessages {
         return 'This trip no longer exists.';
       case 'Forbidden':
         return 'You don\'t have permission to do that.';
+      case 'Trip_Already_Member':
+        return 'You are already a member of this trip.';
       default:
         return 'Something went wrong. Please try again.';
     }
