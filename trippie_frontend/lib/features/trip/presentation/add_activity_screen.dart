@@ -86,7 +86,14 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
 
   bool get _canSubmit {
     final hasName = _nameController.text.trim().isNotEmpty;
-    return hasName && !_submitting;
+    return hasName && !_submitting && !_hasInvalidTime;
+  }
+
+  bool get _hasInvalidTime {
+    if (_startTime == null || _endTime == null) return false;
+    final start = _startTime!.hour * 60 + _startTime!.minute;
+    final end = _endTime!.hour * 60 + _endTime!.minute;
+    return end <= start;
   }
 
   // ── Place search ──────────────────────────────────────────────────
@@ -230,8 +237,8 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
 
   // ── Activity overlap validation ────────────────────────────────────
 
-  bool _hasTimeOverlap() {
-    if (_selectedDay == null || _startTime == null) return false;
+  ActivityDto? _getOverlappingActivity() {
+    if (_selectedDay == null || _startTime == null) return null;
 
     final activities = ref
         .read(tripActivitiesProvider(widget.tripId))
@@ -242,23 +249,119 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
     final endTime = _endTime ?? TimeOfDay(hour: startTime.hour + 1, minute: startTime.minute);
 
     for (final activity in activities) {
-      // Only check activities on the same date
       if (activity.activityDate != selectedDateStr) continue;
-      
-      // Skip activities without time
       if (activity.startTime == null) continue;
 
       final existingStart = _parseTime(activity.startTime!);
-      final existingEnd = activity.endTime != null 
-          ? _parseTime(activity.endTime!) 
+      final existingEnd = activity.endTime != null
+          ? _parseTime(activity.endTime!)
           : TimeOfDay(hour: existingStart.hour + 1, minute: existingStart.minute);
 
-      // Check for overlap
       if (_timesOverlap(startTime, endTime, existingStart, existingEnd)) {
-        return true;
+        return activity;
       }
     }
-    return false;
+    return null;
+  }
+
+  // nájde najbližší voľný slot po danom čase
+  List<TimeOfDay> _findNextFreeSlots() {
+    if (_selectedDay == null) return [];
+
+    final activities = ref
+        .read(tripActivitiesProvider(widget.tripId))
+        .whenOrNull(data: (list) => list) ?? [];
+
+    final selectedDateStr = _toApiDate(_selectedDay!);
+    final dayActivities = activities
+        .where((a) => a.activityDate == selectedDateStr && a.endTime != null)
+        .toList()
+      ..sort((a, b) {
+        final aStart = _parseTime(a.startTime!);
+        final bStart = _parseTime(b.startTime!);
+        return (aStart.hour * 60 + aStart.minute)
+            .compareTo(bStart.hour * 60 + bStart.minute);
+      });
+
+    final slots = <TimeOfDay>[];
+    // hľadaj medzery medzi aktivitami
+    for (int i = 0; i < dayActivities.length; i++) {
+      final end = _parseTime(dayActivities[i].endTime!);
+      final nextStart = i + 1 < dayActivities.length
+          ? _parseTime(dayActivities[i + 1].startTime!)
+          : const TimeOfDay(hour: 23, minute: 0);
+
+      final endMinutes = end.hour * 60 + end.minute;
+      final nextStartMinutes = nextStart.hour * 60 + nextStart.minute;
+      final duration = _endTime != null && _startTime != null
+          ? (_endTime!.hour * 60 + _endTime!.minute) -
+              (_startTime!.hour * 60 + _startTime!.minute)
+          : 60;
+
+      if (nextStartMinutes - endMinutes >= duration) {
+        slots.add(end);
+        if (slots.length >= 3) break;
+      }
+    }
+    return slots;
+  }
+
+  Future<bool> _showOverlapDialog(ActivityDto conflict) async {
+    final slots = _findNextFreeSlots();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Time conflict'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('At this time you already have "${conflict.name}".'),
+            if (slots.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Text('Move to nearest free slot?',
+                  style: TextStyle(fontWeight: FontWeight.w500)),
+              const SizedBox(height: 8),
+              ...slots.map((slot) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: const Icon(Icons.access_time, size: 18),
+                    title: Text(_formatTime(slot)),
+                    onTap: () => Navigator.of(ctx).pop(_formatTime(slot)),
+                  )),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop('keep'),
+            child: const Text('Keep current time'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop('cancel'),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == null || result == 'cancel') return false;
+    if (result == 'keep') return true;
+
+    // user picked a slot — parse and apply
+    final parts = result.split(':');
+    setState(() {
+      _startTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+      if (_endTime != null && _startTime != null) {
+        final duration = (_endTime!.hour * 60 + _endTime!.minute) -
+            ((_startTime!.hour - 0) * 60); // keep duration
+        _endTime = TimeOfDay(
+          hour: _startTime!.hour + 1,
+          minute: _startTime!.minute,
+        );
+      }
+    });
+    return false; // don't submit yet, let user review
   }
 
   TimeOfDay _parseTime(String timeStr) {
@@ -288,9 +391,10 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
     }
 
     // Check for time overlaps
-    if (_hasTimeOverlap()) {
-      setState(() => _error = 'This activity overlaps with another activity on the same day.');
-      return;
+    final conflict = _getOverlappingActivity();
+    if (conflict != null) {
+      final shouldProceed = await _showOverlapDialog(conflict);
+      if (!shouldProceed) return;
     }
 
     setState(() {
@@ -489,6 +593,29 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
                         ),
                       ),
                     ),
+
+                    // invalid time badge
+                    if (_hasInvalidTime) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.red.shade300),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, size: 16, color: Colors.red.shade700),
+                            const SizedBox(width: 8),
+                            Text(
+                              'End time must be after start time.',
+                              style: TextStyle(fontSize: 12, color: Colors.red.shade800),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
 
                     if (_error != null) ...[
                       const SizedBox(height: 12),

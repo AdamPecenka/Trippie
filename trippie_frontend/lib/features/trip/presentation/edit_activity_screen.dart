@@ -60,7 +60,13 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
 
     if (activity.activityDate != null) {
       try {
-        _selectedDay = DateTime.parse(activity.activityDate!);
+        final date = DateTime.parse(activity.activityDate!);
+        final days = _tripDays;
+        // ak je dátum mimo tripu, nastav prvý deň tripu
+        final isInRange = days.any(
+          (d) => d.year == date.year && d.month == date.month && d.day == date.day,
+        );
+        _selectedDay = isInRange ? date : (days.isNotEmpty ? days.first : date);
       } catch (_) {}
     }
 
@@ -142,7 +148,14 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   bool get _canSubmit =>
-      _nameController.text.trim().isNotEmpty && !_submitting;
+      _nameController.text.trim().isNotEmpty && !_submitting && !_hasInvalidTime;
+
+  bool get _hasInvalidTime {
+    if (_startTime == null || _endTime == null) return false;
+    final start = _startTime!.hour * 60 + _startTime!.minute;
+    final end = _endTime!.hour * 60 + _endTime!.minute;
+    return end <= start;
+  }
 
   // ── Place search ──────────────────────────────────────────────────
 
@@ -280,8 +293,10 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
 
   // ── Activity overlap validation ────────────────────────────────────
 
-  bool _hasTimeOverlap() {
-    if (_selectedDay == null || _startTime == null) return false;
+  bool get _hasOverlap => _getOverlappingActivity() != null;
+
+  ActivityDto? _getOverlappingActivity() {
+    if (_selectedDay == null || _startTime == null) return null;
 
     final activities = ref
         .read(tripActivitiesProvider(widget.tripId))
@@ -292,26 +307,20 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
     final endTime = _endTime ?? TimeOfDay(hour: startTime.hour + 1, minute: startTime.minute);
 
     for (final activity in activities) {
-      // Skip the current activity being edited
       if (activity.id == widget.activityId) continue;
-      
-      // Only check activities on the same date
       if (activity.activityDate != selectedDateStr) continue;
-      
-      // Skip activities without time
       if (activity.startTime == null) continue;
 
       final existingStart = _parseTime(activity.startTime!);
-      final existingEnd = activity.endTime != null 
-          ? _parseTime(activity.endTime!) 
+      final existingEnd = activity.endTime != null
+          ? _parseTime(activity.endTime!)
           : TimeOfDay(hour: existingStart.hour + 1, minute: existingStart.minute);
 
-      // Check for overlap
       if (_timesOverlap(startTime, endTime, existingStart, existingEnd)) {
-        return true;
+        return activity;
       }
     }
-    return false;
+    return null;
   }
 
   TimeOfDay _parseTime(String timeStr) {
@@ -340,11 +349,8 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
       return;
     }
 
-    // Check for time overlaps
-    if (_hasTimeOverlap()) {
-      setState(() => _error = 'This activity overlaps with another activity on the same day.');
-      return;
-    }
+    // overlap — nezastaví uloženie, len zobrazí badge
+    setState(() => _error = null);
 
     setState(() {
       _submitting = true;
@@ -615,11 +621,62 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
                       ),
                     ),
 
+                    // invalid time badge
+                    if (_hasInvalidTime) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.red.shade300),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, size: 16, color: Colors.red.shade700),
+                            const SizedBox(width: 8),
+                            Text(
+                              'End time must be after start time.',
+                              style: TextStyle(fontSize: 12, color: Colors.red.shade800),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    // overlap badge
+                    if (_hasOverlap) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF3E0),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.orange.shade300),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.warning_amber_rounded,
+                                size: 16, color: Colors.orange.shade700),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Time conflict with "${_getOverlappingActivity()?.name ?? 'another activity'}". You can still save.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.orange.shade800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
                     if (_error != null) ...[
                       const SizedBox(height: 12),
                       Text(_error!,
-                          style:
-                              const TextStyle(color: Colors.redAccent)),
+                          style: const TextStyle(color: Colors.redAccent)),
                     ],
 
                     const SizedBox(height: 32),
