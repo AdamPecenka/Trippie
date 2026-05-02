@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
 import 'package:trippie_frontend/features/trip/data/invite_dto.dart';

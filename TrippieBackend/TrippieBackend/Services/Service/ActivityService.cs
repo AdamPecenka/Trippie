@@ -44,6 +44,17 @@ public class ActivityService : IActivityService
         if (!isMember)
             return ServiceResult<ActivityDto>.Fail(403, AppErrorEnum.Trip_Access_Denied.ToString());
 
+        if (request.ActivityDate != null)
+{
+            var trip = await _context.Trips.SingleOrDefaultAsync(t => t.Id == tripId);
+            if (trip != null && (
+                request.ActivityDate < DateOnly.FromDateTime(trip.StartDate) ||
+                request.ActivityDate > DateOnly.FromDateTime(trip.EndDate)))
+            {
+                return ServiceResult<ActivityDto>.Fail(400, AppErrorEnum.Activity_Date_Out_Of_Range.ToString());
+            }
+    }
+
         var activity = new TrippieBackend.Models.Model.Activity
         {
             TripId = tripId,
@@ -118,6 +129,13 @@ public class ActivityService : IActivityService
         else
         {
             return ServiceResult<bool>.Fail(403, AppErrorEnum.Activity_Edit_Forbidden.ToString());
+        }
+
+        if (request.ActivityDate != null && (
+            request.ActivityDate < DateOnly.FromDateTime(trip.StartDate) ||
+            request.ActivityDate > DateOnly.FromDateTime(trip.EndDate)))
+        {
+            return ServiceResult<bool>.Fail(400, AppErrorEnum.Activity_Date_Out_Of_Range.ToString());
         }
 
         if (request.Name != null) activity.Name = request.Name;

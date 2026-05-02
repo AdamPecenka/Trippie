@@ -133,7 +133,7 @@ final class ActiveTripsProvider
   }
 }
 
-String _$activeTripsHash() => r'5c0e19bb5447db0923f542904554c0b142dff56f';
+String _$activeTripsHash() => r'6f1d81aae64d3e789d2fa9efa2f7c878d3a774a3';
 
 @ProviderFor(activeTripMembers)
 final activeTripMembersProvider = ActiveTripMembersFamily._();

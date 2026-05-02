@@ -18,6 +18,7 @@ import 'package:trippie_frontend/features/trip/data/activity_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_providers.dart';
 import 'package:trippie_frontend/shared/providers/location_provider.dart';
+import 'package:trippie_frontend/shared/models/trip_enums.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -50,7 +51,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   TripDto? _getActiveTrip(List<TripDto> trips) {
-    final active = trips.where((t) => t.tripStatus == 'ACTIVE').toList();
+    final active = trips.where((t) => t.status == TripStatus.active).toList();
     if (active.isEmpty) return null;
     active.sort((a, b) => b.startDate.compareTo(a.startDate));
     return active.first;

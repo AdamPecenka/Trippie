@@ -9,6 +9,7 @@ import 'package:trippie_frontend/features/trip/data/trip_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_providers.dart';
 import 'package:trippie_frontend/shared/providers/location_provider.dart';
 import 'package:trippie_frontend/shared/providers/trip_hub_provider.dart';
+import 'package:trippie_frontend/shared/models/trip_enums.dart';
 
 class LocationSharingService {
   LocationSharingService(this._ref);
@@ -20,7 +21,7 @@ class LocationSharingService {
   Future<void> initHub(List<TripDto> trips) async {
     if (_hubInitialized) return;
 
-    final activeTrips = trips.where((t) => t.tripStatus == 'ACTIVE').toList();
+    final activeTrips = trips.where((t) => t.status == TripStatus.active).toList();
     if (activeTrips.isEmpty) return;
 
     final hub = _ref.read(tripHubProvider);
@@ -183,7 +184,7 @@ class LocationSharingService {
           );
       if (trips == null || trips.isEmpty) return;
 
-      final activeTrips = trips.where((t) => t.tripStatus == 'ACTIVE').toList();
+      final activeTrips = trips.where((t) => t.status == TripStatus.active).toList();
       if (activeTrips.isEmpty) return;
 
       final apiService = _ref.read(apiServiceProvider);
@@ -222,7 +223,7 @@ class LocationSharingService {
         );
     if (trips == null) return;
 
-    final activeTrips = trips.where((t) => t.tripStatus == 'ACTIVE').toList();
+    final activeTrips = trips.where((t) => t.status == TripStatus.active).toList();
     if (activeTrips.isEmpty) return;
 
     try {

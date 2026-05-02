@@ -48,6 +48,7 @@ public enum AppErrorEnum
     Activity_Not_Found,
     Activity_Edit_Forbidden,
     Activity_Delete_Forbidden,
+    Activity_Date_Out_Of_Range,
     
     // --- Airport ---
     Airport_Not_Found,

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:trippie_frontend/core/theme/app_theme.dart';
 import 'package:trippie_frontend/features/trip/data/trip_dto.dart';
-
+import 'package:trippie_frontend/features/trip/data/trip_enums.dart';
+  
 class TripCard extends StatelessWidget {
   const TripCard({
     super.key,
@@ -42,7 +43,7 @@ class TripCard extends StatelessWidget {
                   ],
                 ),
               ),
-              _StatusBadge(status: trip.tripStatus),
+              _StatusBadge(status: trip.status),
             ],
           ),
         ),
@@ -54,18 +55,24 @@ class TripCard extends StatelessWidget {
 class _StatusBadge extends StatelessWidget {
   const _StatusBadge({required this.status});
 
-  final String status;
+  final TripStatus status;
 
   Color get _color {
     switch (status) {
-      case 'ACTIVE':
+      case TripStatus.active:
         return AppColors.statusActive;
-      case 'PLANNING':
+      case TripStatus.planning:
         return AppColors.statusPlanning;
-      case 'FINISHED':
+      case TripStatus.finished:
         return AppColors.statusFinished;
-      default:
-        return AppColors.statusFinished;
+    }
+  }
+
+  String get _label {
+    switch (status) {
+      case TripStatus.active:   return 'ACTIVE';
+      case TripStatus.planning: return 'PLANNING';
+      case TripStatus.finished: return 'FINISHED';
     }
   }
 
@@ -79,7 +86,7 @@ class _StatusBadge extends StatelessWidget {
         border: Border.all(color: _color.withOpacity(0.5)),
       ),
       child: Text(
-        status,
+        _label,
         style: TextStyle(
           color: _color,
           fontSize: 11,
