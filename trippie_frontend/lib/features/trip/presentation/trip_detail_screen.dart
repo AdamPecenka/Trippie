@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:trippie_frontend/app/router.dart';
 import 'package:trippie_frontend/core/theme/app_theme.dart';
 import 'package:trippie_frontend/features/trip/data/activity_dto.dart';
+import 'package:trippie_frontend/features/trip/data/activity_repository.dart';
 import 'package:trippie_frontend/features/trip/data/trip_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_providers.dart';
-import 'package:trippie_frontend/features/trip/presentation/widgets/trip_card.dart';
 import 'package:trippie_frontend/features/trip/data/trip_enums.dart';
+import 'package:trippie_frontend/shared/providers/fab_provider.dart';
 
 class TripDetailScreen extends ConsumerWidget {
   const TripDetailScreen({super.key, required this.tripId});
@@ -93,6 +95,7 @@ class TripDetailScreen extends ConsumerWidget {
                   data: (activities) => _ActivitiesList(
                     activities: activities,
                     trip: trip,
+                    tripId: tripId,
                   ),
                 ),
               ),
@@ -114,35 +117,24 @@ class TripDetailScreen extends ConsumerWidget {
 
 // ── Activities list grouped by day ────────────────────────────────
 class _ActivitiesList extends StatelessWidget {
-  const _ActivitiesList({required this.activities, required this.trip});
+  const _ActivitiesList({
+    required this.activities,
+    required this.trip,
+    required this.tripId,
+  });
 
   final List<ActivityDto> activities;
   final TripDto? trip;
-
-  Map<String, List<ActivityDto>> get _byDay {
-    final map = <String, List<ActivityDto>>{};
-    for (final a in activities) {
-      final key = a.activityDate ?? 'Unknown';
-      map.putIfAbsent(key, () => []).add(a);
-    }
-    return map;
-  }
+  final String tripId;
 
   @override
   Widget build(BuildContext context) {
-    if (activities.isEmpty) {
-      return Center(
-        child: Text(
-          'No activities yet',
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(color: AppColors.textSecondary),
-        ),
-      );
+    final byDay = <String, List<ActivityDto>>{};
+    for (final a in activities) {
+      final key = a.activityDate ?? 'Unknown';
+      byDay.putIfAbsent(key, () => []).add(a);
     }
-
-    final days = _byDay.keys.toList()..sort();
+    final sortedDays = byDay.keys.toList()..sort();
 
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -153,10 +145,24 @@ class _ActivitiesList extends StatelessWidget {
         Text('Activities:',
             style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 16),
-        ...days.map((day) => _DaySection(
-              day: day,
-              activities: _byDay[day]!,
-            )),
+        if (activities.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 48),
+              child: Text(
+                'No activities yet',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+              ),
+            ),
+          )
+        else
+          ...sortedDays.map((day) => _DaySection(
+                day: day,
+                activities: byDay[day]!,
+                tripId: tripId,
+              )),
       ],
     );
   }
@@ -164,10 +170,11 @@ class _ActivitiesList extends StatelessWidget {
 
 // ── Collapsible day section ────────────────────────────────────────
 class _DaySection extends StatefulWidget {
-  const _DaySection({required this.day, required this.activities});
+  const _DaySection({required this.day, required this.activities, required this.tripId});
 
   final String day;
   final List<ActivityDto> activities;
+  final String tripId;
 
   @override
   State<_DaySection> createState() => _DaySectionState();
@@ -211,7 +218,7 @@ class _DaySectionState extends State<_DaySection> {
           ),
         ),
         if (_expanded) ...[
-          ...widget.activities.map((a) => _ActivityTile(activity: a)),
+          ...widget.activities.map((a) => _ActivityTile(activity: a, tripId: widget.tripId)),
           const SizedBox(height: 8),
         ] else
           const Divider(height: 1),
@@ -221,21 +228,83 @@ class _DaySectionState extends State<_DaySection> {
 }
 
 // ── Activity tile ──────────────────────────────────────────────────
-class _ActivityTile extends StatelessWidget {
-  const _ActivityTile({required this.activity});
+class _ActivityTile extends ConsumerWidget {
+  const _ActivityTile({required this.activity, required this.tripId});
 
   final ActivityDto activity;
+  final String tripId;
 
   String get _timeRange {
     if (activity.startTime == null) return '';
     final start = activity.startTime!.substring(0, 5);
     if (activity.endTime == null) return start;
     final end = activity.endTime!.substring(0, 5);
-    return '$start - $end';
+    return '$start – $end';
+  }
+
+  void _showBottomSheet(BuildContext context, WidgetRef ref) {
+    ref.read(fabProvider.notifier).clear();
+
+    final navbarHeight = 64.0 + MediaQuery.of(context).viewPadding.bottom;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isDismissible: true,
+      enableDrag: true,
+      useSafeArea: false,
+      builder: (ctx) => Align(
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(24, 0, 24, navbarHeight + 46),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: double.infinity),
+            child: _ActivityBottomSheet(
+              activity: activity,
+              tripId: tripId,
+              onDeleted: () {
+                Navigator.of(ctx).pop();
+                ref.invalidate(tripActivitiesProvider(tripId));
+              },
+              onEdit: () {
+                Navigator.of(ctx).pop();
+                context.push('/home/trip/$tripId/activity/${activity.id}/edit');
+              },
+              onViewOnMap: () {
+                Navigator.of(ctx).pop();
+                context.go(
+                  '/map',
+                  extra: {
+                    'lat': activity.place?.latitude,
+                    'lng': activity.place?.longitude,
+                    'name': activity.place?.name ?? activity.name,
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    ).whenComplete(() {
+      ref.read(fabProvider.notifier).setActions([
+        FabAction(
+          label: 'Add activity',
+          onTap: () => context.push(
+            AppRoutes.createActivity.replaceFirst(':tripId', tripId),
+          ),
+        ),
+        FabAction(
+          label: 'Invite friends',
+          onTap: () => context.push(
+            AppRoutes.invite.replaceFirst(':tripId', tripId),
+          ),
+        ),
+      ]);
+    });
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -249,34 +318,287 @@ class _ActivityTile extends StatelessWidget {
                   ),
             ),
           ),
-        Card(
-          child: SizedBox(
-            width: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(  // ✅ Column, nie children priamo v Padding
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    activity.name ?? 'Activity',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  if (_timeRange.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+        Material(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+          elevation: 1,
+          child: InkWell(
+            onTap: () => _showBottomSheet(context, ref),
+            borderRadius: BorderRadius.circular(16),
+            child: SizedBox(
+              width: double.infinity,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      _timeRange,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                      activity.name ?? 'Activity',
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
+                    if (_timeRange.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        _timeRange,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                      ),
+                    ],
+                    if (activity.place != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.place_outlined,
+                              size: 14, color: AppColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              activity.place!.address ?? activity.place!.name,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
         ),
         const SizedBox(height: 8),
       ],
+    );
+  }
+}
+
+// ── Activity bottom sheet ──────────────────────────────────────────
+class _ActivityBottomSheet extends ConsumerStatefulWidget {
+  const _ActivityBottomSheet({
+    required this.activity,
+    required this.tripId,
+    required this.onDeleted,
+    required this.onEdit,
+    required this.onViewOnMap,
+  });
+
+  final ActivityDto activity;
+  final String tripId;
+  final VoidCallback onDeleted;
+  final VoidCallback onEdit;
+  final VoidCallback onViewOnMap;
+
+  @override
+  ConsumerState<_ActivityBottomSheet> createState() =>
+      _ActivityBottomSheetState();
+}
+
+class _ActivityBottomSheetState extends ConsumerState<_ActivityBottomSheet> {
+  bool _deleting = false;
+
+  String get _timeRange {
+    if (widget.activity.startTime == null) return '';
+    final start = widget.activity.startTime!.substring(0, 5);
+    if (widget.activity.endTime == null) return start;
+    final end = widget.activity.endTime!.substring(0, 5);
+    return '$start – $end';
+  }
+
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete activity'),
+        content: Text(
+            'Are you sure you want to delete "${widget.activity.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete',
+                style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _deleting = true);
+    try {
+      await ref
+          .read(activityRepositoryProvider)
+          .deleteActivity(widget.tripId, widget.activity.id);
+      widget.onDeleted();
+    } catch (e) {
+      if (mounted) {
+        setState(() => _deleting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkCardBackground
+            : AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // drag handle
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // name
+          Text(
+            widget.activity.name ?? 'Activity',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+
+          // time
+          if (_timeRange.isNotEmpty)
+            Row(
+              children: [
+                Icon(Icons.access_time,
+                    size: 16, color: AppColors.textSecondary),
+                const SizedBox(width: 6),
+                Text(_timeRange,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        )),
+              ],
+            ),
+
+          // place
+          if (widget.activity.place != null) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.place_outlined,
+                    size: 16, color: AppColors.textSecondary),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    widget.activity.place!.address ??
+                        widget.activity.place!.name,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+
+          // notes
+          if (widget.activity.notes != null &&
+              widget.activity.notes!.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.sticky_note_2_outlined,
+                    size: 16, color: AppColors.textSecondary),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    widget.activity.notes!,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+
+          const SizedBox(height: 24),
+
+          // view on map — len ak má place s koordinátmi
+          if (widget.activity.place != null) ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: widget.onViewOnMap,
+                icon: const Icon(Icons.map_outlined, size: 18),
+                label: const Text('View on map'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7B68EE),
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: const StadiumBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+
+          // edit + delete
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: widget.onEdit,
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: const Text('Edit'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: const StadiumBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _deleting ? null : _confirmDelete,
+                  icon: _deleting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child:
+                              CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.delete_outline, size: 18),
+                  label: const Text('Delete'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: const StadiumBorder(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

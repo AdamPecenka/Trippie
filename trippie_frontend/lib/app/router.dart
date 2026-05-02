@@ -18,6 +18,8 @@ import 'package:trippie_frontend/features/map/presentation/map_screen.dart';
 import 'package:trippie_frontend/features/profile/presentation/profile_screen.dart';
 import 'package:trippie_frontend/features/profile/presentation/favorites_screen.dart';
 import 'package:trippie_frontend/shared/widgets/bottom_navbar.dart';
+import 'package:trippie_frontend/features/trip/presentation/add_activity_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/edit_activity_screen.dart';
 
 part 'router.g.dart';
 
@@ -190,34 +192,33 @@ GoRouter router(Ref ref) {
                         },
                       ),
                       GoRoute(
-                        path: 'activity/create',
+                      path: 'activity/create',
+                      builder: (context, state) {
+                        final tripId = state.pathParameters['tripId']!;
+                        return AddActivityScreen(tripId: tripId);
+                      },
+                    ),
+                      GoRoute(
+                        path: 'activity/success',
                         builder: (context, state) {
                           final tripId = state.pathParameters['tripId']!;
-                          return Scaffold(
-                            backgroundColor: Colors.transparent,
-                            body: Container(
-                              decoration: BoxDecoration(
-                                gradient:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? AppGradients.backgroundDark
-                                    : AppGradients.background,
-                              ),
-                              child: SafeArea(
-                                child: Center(
-                                  child: Text('Create Activity $tripId'),
-                                ),
-                              ),
-                            ),
-                          );
+                          return ActivitySuccessScreen(tripId: tripId);
                         },
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
+                      GoRoute(
+                        path: 'activity/:activityId/edit',
+                        builder: (context, state) {
+                          final tripId = state.pathParameters['tripId']!;
+                          final activityId = state.pathParameters['activityId']!;
+                          return EditActivityScreen(tripId: tripId, activityId: activityId);
+                        },
+                      ),
+                    ],  // ✅ zatvára routes: [ pre trip/:tripId
+                  ),   // ✅ zatvára GoRoute trip/:tripId
+                ],     // ✅ zatvára routes: [ pre home
+              ),       // ✅ zatvára GoRoute home
+            ],         // ✅ zatvára routes: [ pre StatefulShellBranch
+          ),           // ✅ zatvára StatefulShellBranch
 
           StatefulShellBranch(
             routes: [

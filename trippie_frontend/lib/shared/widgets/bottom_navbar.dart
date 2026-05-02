@@ -27,11 +27,8 @@ class _BottomNavbarState extends ConsumerState<BottomNavbar> {
 
   void _updateFab() {
     if (!mounted) return;
-    final location = GoRouter.of(
-      context,
-    ).routeInformationProvider.value.uri.path;
-
-    debugPrint('Current location: $location');
+    // ✅ GoRouterState.of je spoľahlivejší — reaguje aj na pop()
+    final location = GoRouterState.of(context).uri.path;
 
     if (location == AppRoutes.home) {
       ref.read(fabProvider.notifier).setActions([
@@ -46,7 +43,8 @@ class _BottomNavbarState extends ConsumerState<BottomNavbar> {
       ]);
     } else if (location.startsWith('/home/trip/') &&
         !location.endsWith('/invite') &&
-        !location.endsWith('/activity/create')) {
+        !location.endsWith('/activity/create') &&
+        !location.endsWith('/activity/success')) {
       final tripId = location.split('/')[3];
       ref.read(fabProvider.notifier).setActions([
         FabAction(
@@ -83,6 +81,10 @@ class _BottomNavbarState extends ConsumerState<BottomNavbar> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ zachytí pop() ktorý nespustí routeInformationProvider listener
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _updateFab();
+    });
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBody: true,
