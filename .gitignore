@@ -40,3 +40,5 @@ trippie_frontend/lib/core/config/app_config.dart
 
 trippie_frontend/ios/Runner/secret.swifttrippie_frontend/ios/Runner/Keys.swift
 trippie_frontend/ios/Runner/secret.swifttrippie_frontend/ios/Runner/secret.swift
+trippie_frontend/ios/Keys.swift
+trippie_frontend/ios/Runner/Keys.swift
