@@ -82,6 +82,31 @@ class TripRepository {
     }
   }
 
+  Future<String> createTrip({
+    required String name,
+    required String destinationPlaceId,
+    required String transportType,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final response = await apiService.dio.post(
+        '/api/trips',
+        data: {
+          'Name': name,
+          'DestinationPlaceId': destinationPlaceId,
+          'TransportType': transportType,
+          'StartDate': startDate.toUtc().toIso8601String(),
+          'EndDate': endDate.toUtc().toIso8601String(),
+        },
+      );
+      final data = response.data as Map<String, dynamic>;
+      return data['data']['tripId'] as String;
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
   Exception _mapError(DioException e) {
     final responseData = e.response?.data;
     String? serverMessage;

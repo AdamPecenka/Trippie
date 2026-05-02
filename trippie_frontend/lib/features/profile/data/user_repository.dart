@@ -75,6 +75,18 @@ class UserRepository {
     }
   }
 
+  Future<Uint8List?> getAvatarById(String userId) async {
+    try {
+      final response = await apiService.dio.get(
+        '/api/user/$userId/avatar',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return Uint8List.fromList(response.data as List<int>);
+    } on DioException {
+      return null;
+    }
+  }
+
   Exception _mapError(DioException e) {
     final responseData = e.response?.data;
     String? serverMessage;

@@ -14,12 +14,17 @@ import 'package:trippie_frontend/features/trip/presentation/join_screen.dart';
 import 'package:trippie_frontend/features/trip/presentation/join_success_screen.dart';
 import 'package:trippie_frontend/features/trip/presentation/scan_qr_screen.dart';
 import 'package:trippie_frontend/features/trip/presentation/trip_detail_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/trip_hub_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/create_trip_screen.dart';
 import 'package:trippie_frontend/features/map/presentation/map_screen.dart';
 import 'package:trippie_frontend/features/profile/presentation/profile_screen.dart';
 import 'package:trippie_frontend/features/profile/presentation/favorites_screen.dart';
 import 'package:trippie_frontend/shared/widgets/bottom_navbar.dart';
 import 'package:trippie_frontend/features/trip/presentation/add_activity_screen.dart';
 import 'package:trippie_frontend/features/trip/presentation/edit_activity_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/flights_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/add_flight_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/trip_members_screen.dart';
 
 part 'router.g.dart';
 
@@ -37,6 +42,7 @@ abstract final class AppRoutes {
   static const String createTrip = '/home/create';
   static const String joinTrip = '/home/join';
   static const String tripDetail = '/home/trip/:tripId';
+  static const String tripActivities = '/home/trip/:tripId/activities';
   static const String tripMembers = '/home/trip/:tripId/members';
   static const String invite = '/home/trip/:tripId/invite';
   static const String createActivity = '/home/trip/:tripId/activity/create';
@@ -95,16 +101,27 @@ GoRouter router(Ref ref) {
         path: AppRoutes.myAccount,
         builder: (context, state) => const MyAccountScreen(),
       ),
+      // Flights — mimo navbar (žiadny bottom nav)
+      GoRoute(
+        path: '/home/trip/:tripId/flights',
+        builder: (context, state) {
+          final tripId = state.pathParameters['tripId']!;
+          return FlightsScreen(tripId: tripId);
+        },
+      ),
+      GoRoute(
+        path: '/home/trip/:tripId/flights/add',
+        builder: (context, state) {
+          final tripId = state.pathParameters['tripId']!;
+          return AddFlightScreen(tripId: tripId);
+        },
+      ),
 
       StatefulShellRoute.indexedStack(
-        builder:
-            (
-              BuildContext context,
-              GoRouterState state,
-              StatefulNavigationShell navigationShell,
-            ) {
-              return BottomNavbar(navigationShell: navigationShell);
-            },
+        builder: (BuildContext context, GoRouterState state,
+            StatefulNavigationShell navigationShell) {
+          return BottomNavbar(navigationShell: navigationShell);
+        },
         branches: [
           StatefulShellBranch(
             routes: [
@@ -112,23 +129,13 @@ GoRouter router(Ref ref) {
                 path: AppRoutes.home,
                 builder: (context, state) => const HomeScreen(),
                 routes: [
+                  // ── Create Trip ──────────────────────────────
                   GoRoute(
                     path: 'create',
-                    builder: (context, state) => Scaffold(
-                      backgroundColor: Colors.transparent,
-                      body: Container(
-                        decoration: BoxDecoration(
-                          gradient:
-                              Theme.of(context).brightness == Brightness.dark
-                              ? AppGradients.backgroundDark
-                              : AppGradients.background,
-                        ),
-                        child: const SafeArea(
-                          child: Center(child: Text('Create Trip')),
-                        ),
-                      ),
-                    ),
+                    builder: (context, state) => const CreateTripScreen(),
                   ),
+
+                  // ── Join Trip ────────────────────────────────
                   GoRoute(
                     path: 'join',
                     builder: (context, state) => const JoinScreen(),
@@ -156,6 +163,8 @@ GoRouter router(Ref ref) {
                       ),
                     ],
                   ),
+
+                  // ── Trip Detail (aktivity) + sub-routes ─────
                   GoRoute(
                     path: 'trip/:tripId',
                     builder: (context, state) {
@@ -163,27 +172,23 @@ GoRouter router(Ref ref) {
                       return TripDetailScreen(tripId: tripId);
                     },
                     routes: [
+                      // Hub (menu → Trip information)
+                      GoRoute(
+                        path: 'hub',
+                        builder: (context, state) {
+                          final tripId = state.pathParameters['tripId']!;
+                          return TripHubScreen(tripId: tripId);
+                        },
+                      ),
+                      // Members
                       GoRoute(
                         path: 'members',
                         builder: (context, state) {
                           final tripId = state.pathParameters['tripId']!;
-                          return Scaffold(
-                            backgroundColor: Colors.transparent,
-                            body: Container(
-                              decoration: BoxDecoration(
-                                gradient:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? AppGradients.backgroundDark
-                                    : AppGradients.background,
-                              ),
-                              child: SafeArea(
-                                child: Center(child: Text('Members $tripId')),
-                              ),
-                            ),
-                          );
+                          return TripMembersScreen(tripId: tripId);
                         },
                       ),
+                      // Invite
                       GoRoute(
                         path: 'invite',
                         builder: (context, state) {
@@ -191,13 +196,15 @@ GoRouter router(Ref ref) {
                           return InviteScreen(tripId: tripId);
                         },
                       ),
+                      // Add activity
                       GoRoute(
-                      path: 'activity/create',
-                      builder: (context, state) {
-                        final tripId = state.pathParameters['tripId']!;
-                        return AddActivityScreen(tripId: tripId);
-                      },
-                    ),
+                        path: 'activity/create',
+                        builder: (context, state) {
+                          final tripId = state.pathParameters['tripId']!;
+                          return AddActivityScreen(tripId: tripId);
+                        },
+                      ),
+                      // Activity success
                       GoRoute(
                         path: 'activity/success',
                         builder: (context, state) {
@@ -205,20 +212,23 @@ GoRouter router(Ref ref) {
                           return ActivitySuccessScreen(tripId: tripId);
                         },
                       ),
+                      // Edit activity
                       GoRoute(
                         path: 'activity/:activityId/edit',
                         builder: (context, state) {
                           final tripId = state.pathParameters['tripId']!;
-                          final activityId = state.pathParameters['activityId']!;
-                          return EditActivityScreen(tripId: tripId, activityId: activityId);
+                          final activityId =
+                              state.pathParameters['activityId']!;
+                          return EditActivityScreen(
+                              tripId: tripId, activityId: activityId);
                         },
                       ),
-                    ],  // ✅ zatvára routes: [ pre trip/:tripId
-                  ),   // ✅ zatvára GoRoute trip/:tripId
-                ],     // ✅ zatvára routes: [ pre home
-              ),       // ✅ zatvára GoRoute home
-            ],         // ✅ zatvára routes: [ pre StatefulShellBranch
-          ),           // ✅ zatvára StatefulShellBranch
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
 
           StatefulShellBranch(
             routes: [

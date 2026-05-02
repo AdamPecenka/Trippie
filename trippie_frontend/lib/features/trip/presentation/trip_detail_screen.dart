@@ -49,7 +49,40 @@ class TripDetailScreen extends ConsumerWidget {
                       onPressed: () => context.pop(),
                     ),
                     const Spacer(),
-                    const Icon(Icons.menu),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.menu),
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'info':
+                            context.push('/home/trip/$tripId/hub');
+                            break;
+                          case 'members':
+                            context.push('/home/trip/$tripId/members');
+                            break;
+                          case 'status':
+                            // TODO: change status
+                            break;
+                          case 'leave':
+                            // TODO: leave trip
+                            break;
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        const PopupMenuItem(
+                          value: 'info',
+                          child: Text('Trip information'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'status',
+                          child: Text('Change state of trip'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'leave',
+                          child: Text('Leave trip',
+                              style: TextStyle(color: Colors.redAccent)),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
