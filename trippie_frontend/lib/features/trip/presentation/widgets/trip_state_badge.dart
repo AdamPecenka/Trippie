@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:trippie_frontend/core/theme/app_theme.dart';
-import 'package:trippie_frontend/shared/models/trip_enums.dart';
+import 'package:trippie_frontend/features/trip/data/trip_enums.dart';
+
 
 class TripStateBadge extends StatelessWidget {
   const TripStateBadge({super.key, required this.status});

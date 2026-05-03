@@ -9,7 +9,8 @@ import 'package:trippie_frontend/features/trip/data/trip_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_providers.dart';
 import 'package:trippie_frontend/shared/providers/location_provider.dart';
 import 'package:trippie_frontend/shared/providers/trip_hub_provider.dart';
-import 'package:trippie_frontend/shared/models/trip_enums.dart';
+import 'package:trippie_frontend/features/trip/data/trip_enums.dart';
+
 
 class LocationSharingService {
   LocationSharingService(this._ref);

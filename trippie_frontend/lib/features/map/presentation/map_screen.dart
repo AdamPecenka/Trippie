@@ -18,7 +18,7 @@ import 'package:trippie_frontend/features/trip/data/activity_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_providers.dart';
 import 'package:trippie_frontend/shared/providers/location_provider.dart';
-import 'package:trippie_frontend/shared/models/trip_enums.dart';
+import 'package:trippie_frontend/features/trip/data/trip_enums.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});

@@ -30,7 +30,6 @@ public class UserService : IUserService
             // ak neexistuje v DB user pre validny token, nieco je zle na serveri
             throw new InvalidOperationException($"[!!!] Authenticated user {userId} not found in DB");
         }
-
         return ServiceResult<UserDto>.Ok(MapToDto(user));
     }
 
@@ -116,7 +115,6 @@ public class UserService : IUserService
 
         return ServiceResult<bool>.Ok(true);
     }
-
     public async Task<ServiceResult<(byte[] Data, string ContentType)>> GetAvatar(Guid userId)
     {
         var user = await _context.Users.SingleOrDefaultAsync(u => u.Id == userId);

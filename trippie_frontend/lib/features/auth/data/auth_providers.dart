@@ -70,8 +70,8 @@ class AuthNotifier extends _$AuthNotifier {
     try {
       final response = await apiSvc.dio.get('/api/user/me');
       final data = response.data as Map<String, dynamic>;
-      final user = UserDto.fromJson(data['data'] as Map<String, dynamic>);
-      return user;
+      return UserDto.fromJson(data['data'] as Map<String, dynamic>);
+      
     } catch (e) {
       debugPrint('[E] Failed to fetch user on startup: $e');
       await authSvc.clearTokens();
@@ -135,7 +135,7 @@ class AuthNotifier extends _$AuthNotifier {
     await NotificationService.instance.registerToken(apiSvc);
     state = AsyncData(dto.user);
   }
-
+  
   Future<void> register({
     required String firstName,
     required String lastName,
@@ -176,8 +176,6 @@ class AuthNotifier extends _$AuthNotifier {
 
     await authSvc.clearTokens();
     apiSvc.clearAuthToken();
-
-    await ref.read(tripHubProvider).disconnect();
 
     state = const AsyncData(null);
 

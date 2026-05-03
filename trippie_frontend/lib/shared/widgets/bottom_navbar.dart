@@ -32,7 +32,7 @@ class _BottomNavbarState extends ConsumerState<BottomNavbar> {
     ).routeInformationProvider.value.uri.path;
     debugPrint('🔥 _updateFab called: $location');
 
-    debugPrint('Current location: $location');
+    debugPrint('[i] Current screen location: $location');
 
     if (location == AppRoutes.home) {
       ref.read(fabProvider.notifier).setActions([

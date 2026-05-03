@@ -15,11 +15,10 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final firstName = ref.watch(authProvider).whenOrNull(
-          data: (user) => user?.firstname,
-        ) ??
+              data: (user) => user?.firstname,
+            ) ??
         '';
 
-    // ✅ ZMENA 1: tripsNotifierProvider namiesto tripsProvider
     final tripsAsync = ref.watch(tripsProvider);
 
     return Scaffold(
@@ -55,11 +54,15 @@ class _TripList extends ConsumerWidget {
   List<TripDto> get _upcoming => trips
       .where((t) => t.status != TripStatus.finished)
       .toList()
-    ..sort((a, b) {
-      if (a.status == TripStatus.active && b.status != TripStatus.active) return -1;
-      if (a.status != TripStatus.active && b.status == TripStatus.active) return 1;
-      return a.startDate.compareTo(b.startDate);
-    });
+      ..sort((a, b) {
+        if (a.status == TripStatus.active && b.status != TripStatus.active) {
+          return -1;
+        }
+        if (a.status != TripStatus.active && b.status == TripStatus.active) {
+          return 1;
+        }
+        return a.startDate.compareTo(b.startDate);
+      });
 
   List<TripDto> get _history => trips
       .where((t) => t.status == TripStatus.finished)
@@ -73,9 +76,7 @@ class _TripList extends ConsumerWidget {
     }
     
     return RefreshIndicator(
-      // ✅ ZMENA 2: refresh cez notifier
-      onRefresh: () async =>
-          ref.read(tripsProvider.notifier).refresh(),
+      onRefresh: () async => ref.read(tripsProvider.notifier).refresh(),
       child: ListView(
         padding: EdgeInsets.fromLTRB(
           24,
@@ -109,30 +110,38 @@ class _TripList extends ConsumerWidget {
           ],
 
           if (_upcoming.isNotEmpty) ...[
-            Text('Your upcoming trips:',
-                style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'Your upcoming trips:',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 12),
-            ..._upcoming.map((trip) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: TripCard(
-                    trip: trip,
-                    onTap: () => context.push('/home/trip/${trip.id}'),
-                  )
-                )),
+            ..._upcoming.map(
+              (trip) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: TripCard(
+                  trip: trip,
+                  onTap: () => context.push('/home/trip/${trip.id}'),
+                ),
+              ),
+            ),
             const SizedBox(height: 8),
           ],
 
           if (_history.isNotEmpty) ...[
-            Text('History of trips:',
-                style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'History of trips:',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 12),
-            ..._history.map((trip) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: TripCard(
-                    trip: trip,
-                    onTap: () => context.push('/home/trip/${trip.id}'),
-                  ),
-                )),
+            ..._history.map(
+              (trip) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: TripCard(
+                  trip: trip,
+                  onTap: () => context.push('/home/trip/${trip.id}'),
+                ),
+              ),
+            ),
           ],
         ],
       ),

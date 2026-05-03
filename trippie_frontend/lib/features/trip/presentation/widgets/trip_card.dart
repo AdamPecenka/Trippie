@@ -3,7 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:trippie_frontend/core/theme/app_theme.dart';
 import 'package:trippie_frontend/features/trip/data/trip_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_enums.dart';
-  
+
+
 class TripCard extends StatelessWidget {
   const TripCard({
     super.key,

@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
-// import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
 import 'package:trippie_frontend/features/trip/data/accommodation_dto.dart';
 import 'package:trippie_frontend/features/trip/data/activity_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_dto.dart';
+import 'package:trippie_frontend/features/trip/data/trip_enums.dart';
 import 'package:trippie_frontend/features/trip/data/trip_member_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_repository.dart';
 import 'package:trippie_frontend/shared/services/api_service.dart';
@@ -13,7 +13,7 @@ import 'package:trippie_frontend/features/trip/data/trip_enums.dart';
 part 'trip_providers.g.dart';
 
 // ---------------------------------------------------------------------------
-// Repository — jeden, keepAlive
+// Repository — keepAlive
 // ---------------------------------------------------------------------------
 @Riverpod(keepAlive: true)
 TripRepository tripRepository(Ref ref) {
@@ -21,7 +21,7 @@ TripRepository tripRepository(Ref ref) {
 }
 
 // ---------------------------------------------------------------------------
-// Všetky tripy — keepAlive, s refresh()
+// All trips — keepAlive, with refresh()
 // ---------------------------------------------------------------------------
 @Riverpod(keepAlive: true)
 class TripsNotifier extends _$TripsNotifier {
@@ -33,13 +33,13 @@ class TripsNotifier extends _$TripsNotifier {
   Future<void> refresh() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(
-      () => ref.read(tripRepositoryProvider).getTrips(),
+      () => ref.watch(tripRepositoryProvider).getTrips(),
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Derived: len ACTIVE tripy
+// Derived: ACTIVE trips only
 // ---------------------------------------------------------------------------
 @Riverpod(keepAlive: true)
 List<TripDto> activeTrips(Ref ref) {

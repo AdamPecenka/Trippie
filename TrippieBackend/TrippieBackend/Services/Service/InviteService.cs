@@ -138,7 +138,7 @@ public class InviteService : IInviteService
             trip.Name
         );
 
-        Console.WriteLine($"[+] member joined by code | user:{userId} trip:{tripId}");
+        Console.WriteLine($"[+] member joined | user:{userId} trip:{tripId}");
 
         return ServiceResult<JoinTripResponseDto>.Ok(new JoinTripResponseDto
         {
@@ -158,15 +158,13 @@ public class InviteService : IInviteService
             return ServiceResult<JoinTripResponseDto>.Fail(404, AppErrorEnum.Invite_Invalid_Code.ToString());
         }
 
-        var trip = invite.Trip;
-
-        if (trip.TripStatus == TripStatusEnum.FINISHED)
+        if (invite.Trip.TripStatus == TripStatusEnum.FINISHED)
         {
             return ServiceResult<JoinTripResponseDto>.Fail(409, AppErrorEnum.Trip_Already_Finished.ToString());
         }
 
         var alreadyMember = await _context.TripMembers
-            .AnyAsync(tm => tm.TripId == trip.Id && tm.UserId == userId);
+            .AnyAsync(tm => tm.TripId == invite.TripId && tm.UserId == userId);
 
         if (alreadyMember)
         {
@@ -175,7 +173,7 @@ public class InviteService : IInviteService
 
         var member = new TripMember
         {
-            TripId = trip.Id,
+            TripId = invite.TripId!.Value,
             UserId = userId,
             TripRole = TripRoleEnum.TRIP_MEMBER,
             JoinedAt = DateTime.UtcNow,
@@ -189,7 +187,7 @@ public class InviteService : IInviteService
         var newMember = await _context.Users.SingleAsync(u => u.Id == userId);
 
         await _hubContext.Clients
-            .Group($"trip:{trip.Id}")
+            .Group($"trip:{invite.TripId!.Value}")
             .SendAsync("trip:member_joined", new MemberJoinedTripEventDto
             {
                 UserId = userId,
@@ -201,18 +199,18 @@ public class InviteService : IInviteService
             });
 
         await _fcmService.SendMemberJoinedAsync(
-            trip.Id,
+            invite.TripId!.Value,
             userId,
             $"{newMember.Firstname} {newMember.Lastname}",
-            trip.Name
+            invite.Trip.Name
         );
 
-        Console.WriteLine($"[+] member joined by code | user:{userId} trip:{trip.Id}");
+        Console.WriteLine($"[+] member joined by code | user:{userId} trip:{invite.TripId!.Value}");
 
         return ServiceResult<JoinTripResponseDto>.Ok(new JoinTripResponseDto
         {
-            TripId = trip.Id,
-            TripName = trip.Name
+            TripId = invite.TripId!.Value,
+            TripName = invite.Trip.Name
         });
     }
 }

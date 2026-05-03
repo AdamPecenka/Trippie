@@ -74,7 +74,7 @@ final class TripsNotifierProvider
   TripsNotifier create() => TripsNotifier();
 }
 
-String _$tripsNotifierHash() => r'a80fa286da33c590116fba00393e3e1bb4e78eb7';
+String _$tripsNotifierHash() => r'8126feb6a4473b6335df1ad0a9ba737182dcfba5';
 
 abstract class _$TripsNotifier extends $AsyncNotifier<List<TripDto>> {
   FutureOr<List<TripDto>> build();
