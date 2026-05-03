@@ -139,6 +139,23 @@ public class UserService : IUserService{
 
         return ServiceResult<(byte[], string)>.Ok((data, contentType));
     }
+
+    public async Task<ServiceResult<(byte[] Data, string ContentType)>> GetAvatarById(Guid userId)
+    {
+        var user = await _context.Users.SingleOrDefaultAsync(u => u.Id == userId);
+        if (user == null || user.AvatarPath == null || !File.Exists(user.AvatarPath))
+            return ServiceResult<(byte[], string)>.Fail(404, AppErrorEnum.Avatar_Not_Found.ToString());
+
+        var data = await File.ReadAllBytesAsync(user.AvatarPath);
+        var contentType = Path.GetExtension(user.AvatarPath).ToLowerInvariant() switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            _ => "application/octet-stream"
+        };
+        return ServiceResult<(byte[], string)>.Ok((data, contentType));
+    }
     
     private UserDto MapToDto(User user)
     {
