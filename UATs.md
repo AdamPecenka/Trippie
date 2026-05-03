@@ -8,7 +8,7 @@
 - [x] UAT 4: Používateľ sa pripojí do tripu pomocou QR kódu
 - [ ] UAT 5: Používateľ pridá lokáciu z favorites ako aktivitu do tripu
 - [x] UAT 6: Offline vytvorenie aktivity a automatická synchronizácia po pripojení na internet
-- [ ] UAT 7: Zobrazenie trip membera na mape
+- [x] UAT 7: Zobrazenie trip membera na mape
 - [x] UAT 8: Používateľ pripojený do tripu sa nevie druhýkrát pripojiť do toho istého tripu
 - [ ] UAT 9: Používateľ nevie zadať čas príletu skorší ako čas odletu
     - [ ] skontrolovat datumy - moze sa vyberat iba v rozsahu vyletu
