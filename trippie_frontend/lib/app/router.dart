@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:trippie_frontend/core/theme/app_theme.dart';
 import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
 import 'package:trippie_frontend/features/auth/presentation/login_screen.dart';
 import 'package:trippie_frontend/features/auth/presentation/register_screen.dart';
@@ -106,23 +105,6 @@ GoRouter router(Ref ref) {
         path: AppRoutes.myAccount,
         builder: (context, state) => const MyAccountScreen(),
       ),
-      // Flights — mimo navbar (žiadny bottom nav)
-      GoRoute(
-        path: '/home/trip/:tripId/flights',
-        builder: (context, state) {
-          final tripId = state.pathParameters['tripId']!;
-          return FlightsScreen(tripId: tripId);
-        },
-      ),
-      GoRoute(
-        path: '/home/trip/:tripId/flights/add',
-        builder: (context, state) {
-          final tripId = state.pathParameters['tripId']!;
-          return AddFlightScreen(tripId: tripId);
-        },
-      ),
-
-      // Flights — outside navbar
       GoRoute(
         path: '/home/trip/:tripId/flights',
         builder: (context, state) {
@@ -153,13 +135,10 @@ GoRouter router(Ref ref) {
                 path: AppRoutes.home,
                 builder: (context, state) => const HomeScreen(),
                 routes: [
-                  // ── Create Trip ──────────────────────────────
                   GoRoute(
                     path: 'create',
                     builder: (context, state) => const CreateTripScreen(),
                   ),
-
-                  // ── Join Trip ────────────────────────────────
                   GoRoute(
                     path: 'join',
                     builder: (context, state) => const JoinScreen(),
@@ -187,8 +166,6 @@ GoRouter router(Ref ref) {
                       ),
                     ],
                   ),
-
-                  // ── Trip Detail (aktivity) + sub-routes ─────
                   GoRoute(
                     path: 'trip/:tripId',
                     builder: (context, state) {
@@ -196,15 +173,6 @@ GoRouter router(Ref ref) {
                       return TripDetailScreen(tripId: tripId);
                     },
                     routes: [
-                      // Hub (menu → Trip information)
-                      GoRoute(
-                        path: 'hub',
-                        builder: (context, state) {
-                          final tripId = state.pathParameters['tripId']!;
-                          return TripHubScreen(tripId: tripId);
-                        },
-                      ),
-                      // Members
                       GoRoute(
                         path: 'hub',
                         builder: (context, state) {
@@ -219,7 +187,6 @@ GoRouter router(Ref ref) {
                           return TripMembersScreen(tripId: tripId);
                         },
                       ),
-                      // Invite
                       GoRoute(
                         path: 'invite',
                         builder: (context, state) {
@@ -227,7 +194,6 @@ GoRouter router(Ref ref) {
                           return InviteScreen(tripId: tripId);
                         },
                       ),
-                      // Add activity
                       GoRoute(
                         path: 'activity/create',
                         builder: (context, state) {
@@ -235,8 +201,6 @@ GoRouter router(Ref ref) {
                           return AddActivityScreen(tripId: tripId);
                         },
                       ),
-                      // Activity success
-
                       GoRoute(
                         path: 'activity/success',
                         builder: (context, state) {
@@ -244,7 +208,8 @@ GoRouter router(Ref ref) {
                           return ActivitySuccessScreen(tripId: tripId);
                         },
                       ),
-                      // Edit activity
+                      GoRoute(
+                        path: 'activity/:activityId/edit',
                         builder: (context, state) {
                           final tripId = state.pathParameters['tripId']!;
                           final activityId =

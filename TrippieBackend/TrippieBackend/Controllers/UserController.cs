@@ -23,7 +23,7 @@ public class UserController : ControllerBase
     /// <response code="200">User profile returned successfully.</response>
     /// <response code="401">Token is missing or invalid.</response>
     /// <response code="500">Valid token but no matching user found in DB.</response>
-    [HttpGet ("me")]
+    [HttpGet]
     public async Task<IActionResult> GetMe()
     {
         Guid userId = Utils.GetUserId(User);
@@ -41,7 +41,7 @@ public class UserController : ControllerBase
     /// <response code="400">Request body failed validation.</response>
     /// <response code="401">Token is missing or invalid.</response>
     /// <response code="500">Valid token but no matching user found in DB.</response>
-    [HttpPut ("me")]
+    [HttpPut]
     public async Task<IActionResult> PutMe([FromBody] UserPutRequestDto userPutRequest)
     {
         Guid userId = Utils.GetUserId(User);
@@ -54,7 +54,7 @@ public class UserController : ControllerBase
     /// <summary>Toggle the authenticated user's theme between LIGHT and DARK.</summary>
     /// <response code="204">Theme updated successfully</response>
     /// <response code="401">Token is missing or invalid</response>
-    [HttpPatch("me/theme")]
+    [HttpPatch("theme")]
     public async Task<IActionResult> UpdateUserTheme()
     {
         Guid userId = Utils.GetUserId(User);
@@ -70,7 +70,7 @@ public class UserController : ControllerBase
     /// <response code="204">Avatar uploaded successfully</response>
     /// <response code="400">Invalid file format or file too large</response>
     /// <response code="401">Token is missing or invalid</response>
-    [HttpPut("me/avatar")]
+    [HttpPut("avatar")]
     public async Task<IActionResult> UploadAvatar(IFormFile file)
     {
         Guid userId = Utils.GetUserId(User);
@@ -118,7 +118,7 @@ public class UserController : ControllerBase
         return File(data, contentType);
     }
 
-    [HttpGet("{userId:guid}/avatar")]
+    [HttpGet("/api/user/{userId:guid}/avatar")]
     public async Task<IActionResult> GetAvatarById([FromRoute] Guid userId)
     {
         var result = await _userService.GetAvatarById(userId);
