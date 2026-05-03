@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -21,7 +22,10 @@ import 'package:trippie_frontend/shared/providers/location_provider.dart';
 import 'package:trippie_frontend/features/trip/data/trip_enums.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
-  const MapScreen({super.key});
+  const MapScreen({super.key, this.tripId, this.memberId});
+
+  final String? tripId;
+  final String? memberId;
 
   @override
   ConsumerState<MapScreen> createState() => _MapScreenState();
@@ -32,6 +36,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Set<Marker> _memberMarkers = {};
   final Map<String, BitmapDescriptor> _markerIconCache = {};
   bool _searchActive = false;
+  final _mapReady = Completer<void>();
 
   @override
   void initState() {
@@ -40,6 +45,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       final locations = ref.read(memberLocationsProvider);
       if (locations.isNotEmpty) {
         _rebuildMemberMarkers(locations);
+
+        // If memberId is provided, animate to that member
+        if (widget.memberId != null && locations.containsKey(widget.memberId)) {
+          _animateToMember(locations[widget.memberId]!);
+        }
       }
     });
   }
@@ -48,6 +58,21 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   void dispose() {
     _mapController?.dispose();
     super.dispose();
+  }
+
+  Future<void> _animateToMember(MemberLocation member) async {
+    await _mapReady.future;
+    debugPrint(
+      '[>] Animating to member ${member.userId} at (${member.latitude}, ${member.longitude})',
+    );
+    _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(member.latitude, member.longitude),
+          zoom: 15,
+        ),
+      ),
+    );
   }
 
   TripDto? _getActiveTrip(List<TripDto> trips) {
@@ -250,6 +275,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     markers: markers,
                     onMapCreated: (controller) {
                       _mapController = controller;
+                      if (!_mapReady.isCompleted) _mapReady.complete();
                     },
                   ),
                   if (activeTrip != null)

@@ -18,6 +18,8 @@ class BottomNavbar extends ConsumerStatefulWidget {
 }
 
 class _BottomNavbarState extends ConsumerState<BottomNavbar> {
+  late GoRouter _router;
+
   void _onTabTapped(int index) {
     widget.navigationShell.goBranch(
       index,
@@ -27,9 +29,7 @@ class _BottomNavbarState extends ConsumerState<BottomNavbar> {
 
   void _updateFab() {
     if (!mounted) return;
-    final location = GoRouter.of(
-      context,
-    ).routeInformationProvider.value.uri.path;
+    final location = _router.routeInformationProvider.value.uri.path;
     debugPrint('🔥 _updateFab called: $location');
 
     debugPrint('[i] Current screen location: $location');
@@ -75,16 +75,16 @@ class _BottomNavbarState extends ConsumerState<BottomNavbar> {
   @override
   void initState() {
     super.initState();
+    _router = GoRouter.of(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      GoRouter.of(context).routeInformationProvider.addListener(_updateFab);
-      
+      _router.routeInformationProvider.addListener(_updateFab);
       _updateFab();
     });
   }
 
   @override
   void dispose() {
-    GoRouter.of(context).routeInformationProvider.removeListener(_updateFab);
+    _router.routeInformationProvider.removeListener(_updateFab);
     super.dispose();
   }
 

@@ -122,13 +122,14 @@ GoRouter router(Ref ref) {
       ),
 
       StatefulShellRoute.indexedStack(
-        builder: (
-          BuildContext context,
-          GoRouterState state,
-          StatefulNavigationShell navigationShell,
-        ) {
-          return BottomNavbar(navigationShell: navigationShell);
-        },
+        builder:
+            (
+              BuildContext context,
+              GoRouterState state,
+              StatefulNavigationShell navigationShell,
+            ) {
+              return BottomNavbar(navigationShell: navigationShell);
+            },
         branches: [
           StatefulShellBranch(
             routes: [
@@ -219,6 +220,15 @@ GoRouter router(Ref ref) {
                             tripId: tripId,
                             activityId: activityId,
                           );
+                        },
+                      ),
+                      GoRoute(
+                        path: 'map',
+                        builder: (context, state) {
+                          final tripId = state.pathParameters['tripId']!;
+                          final memberId =
+                              state.uri.queryParameters['memberId'];
+                          return MapScreen(tripId: tripId, memberId: memberId);
                         },
                       ),
                     ],
