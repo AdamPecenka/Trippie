@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:trippie_frontend/core/theme/app_theme.dart';
 import 'package:trippie_frontend/features/trip/data/trip_enums.dart';
 
-
 class TripStateBadge extends StatelessWidget {
   const TripStateBadge({super.key, required this.status});
 
@@ -20,7 +19,7 @@ class TripStateBadge extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(

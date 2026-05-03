@@ -22,6 +22,7 @@ import 'package:trippie_frontend/features/profile/presentation/profile_screen.da
 import 'package:trippie_frontend/features/profile/presentation/favorites_screen.dart';
 import 'package:trippie_frontend/shared/widgets/bottom_navbar.dart';
 import 'package:trippie_frontend/features/trip/presentation/add_activity_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/activity_success_screen.dart';
 import 'package:trippie_frontend/features/trip/presentation/edit_activity_screen.dart';
 import 'package:trippie_frontend/features/trip/presentation/flights_screen.dart';
 import 'package:trippie_frontend/features/trip/presentation/add_flight_screen.dart';

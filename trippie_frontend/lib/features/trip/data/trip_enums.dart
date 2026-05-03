@@ -8,4 +8,10 @@ extension TripStatusX on TripStatus {
       _          => TripStatus.planning
     };
   }
+
+  String get label => switch (this) {
+    TripStatus.planning => 'PLANNING',
+    TripStatus.active   => 'ACTIVE',
+    TripStatus.finished => 'FINISHED',
+  };
 }

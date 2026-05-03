@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trippie_frontend/app/app.dart';
 import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
+import 'package:trippie_frontend/features/trip/data/activity_repository.dart';
 import 'package:trippie_frontend/features/trip/data/trip_providers.dart';
+import 'package:trippie_frontend/shared/providers/connectivity_provider.dart';
 import 'package:trippie_frontend/shared/services/location_sharing_service.dart';
+import 'package:trippie_frontend/shared/services/offline_queue_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:trippie_frontend/firebase_options.dart';
 
@@ -41,6 +44,7 @@ class _AppWithLifecycleState extends ConsumerState<_AppWithLifecycle>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _locationSharing = LocationSharingService(ref);
+    ref.read(isOnlineProvider); // kick off connectivity stream
   }
 
   @override
@@ -58,6 +62,66 @@ class _AppWithLifecycleState extends ConsumerState<_AppWithLifecycle>
 
     if (state == AppLifecycleState.resumed) {
       _locationSharing.reconnectIfNeeded();
+    }
+  }
+
+  Future<void> _syncOfflineQueue() async {
+    final queue = OfflineQueueService();
+    final pending = await queue.getAll();
+    if (pending.isEmpty) return;
+
+    debugPrint('[i] syncing ${pending.length} offline activities');
+    final repo = ref.read(activityRepositoryProvider);
+
+    for (final activity in pending) {
+      try {
+        switch (activity.operation) {
+          case OfflineOperation.create:
+            await repo.createActivity(
+              activity.tripId,
+              CreateActivityRequestDto(
+                name: activity.name,
+                placeId: activity.placeId,
+                activityDate: activity.activityDate,
+                startTime: activity.startTime,
+                endTime: activity.endTime,
+                notes: activity.notes,
+              ),
+            );
+            break;
+          case OfflineOperation.update:
+            await repo.patchActivity(
+              activity.tripId,
+              activity.activityId!,
+              CreateActivityRequestDto(
+                name: activity.name,
+                placeId: activity.placeId,
+                activityDate: activity.activityDate,
+                startTime: activity.startTime,
+                endTime: activity.endTime,
+                notes: activity.notes,
+              ),
+            );
+            break;
+          case OfflineOperation.delete:
+            await repo.deleteActivity(
+              activity.tripId,
+              activity.activityId!,
+            );
+            break;
+        }
+        await queue.remove(activity.localId);
+        ref.invalidate(tripActivitiesProvider(activity.tripId));
+        debugPrint('[+] offline synced: ${activity.operation.name} ${activity.localId}');
+      } on OfflineQueuedException {
+        // still offline, repo re-queued it — stop draining
+        debugPrint('[i] still offline during sync, stopping');
+        break;
+      } catch (e) {
+        // 4xx or other server error — discard
+        await queue.remove(activity.localId);
+        debugPrint('[!] conflict discarded: ${activity.localId} — $e');
+      }
     }
   }
 
@@ -88,6 +152,14 @@ class _AppWithLifecycleState extends ConsumerState<_AppWithLifecycle>
         if (!wasLoading) return;
         _locationSharing.initHub(trips);
       });
+    });
+
+    // auto-sync when connectivity restored
+    ref.listen(isOnlineProvider, (previous, next) {
+      if (previous == false && next == true) {
+        debugPrint('[i] connectivity restored, syncing offline queue');
+        _syncOfflineQueue();
+      }
     });
 
     return const App();
