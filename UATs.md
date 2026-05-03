@@ -5,9 +5,9 @@
     - [ ] oznacit povinné polia pri formulári
     - [ ] vymeniť poradie -> najprv názov a potom poloha aktivity
 - [ ] UAT 3: Pridanie lokácie do favorites
-- [ ] UAT 4: Používateľ sa pripojí do tripu pomocou QR kódu
+- [x] UAT 4: Používateľ sa pripojí do tripu pomocou QR kódu
 - [ ] UAT 5: Používateľ pridá lokáciu z favorites ako aktivitu do tripu
-- [ ] UAT 6: Offline vytvorenie aktivity a automatická synchronizácia po pripojení na internet
+- [x] UAT 6: Offline vytvorenie aktivity a automatická synchronizácia po pripojení na internet
 - [ ] UAT 7: Zobrazenie trip membera na mape
 - [x] UAT 8: Používateľ pripojený do tripu sa nevie druhýkrát pripojiť do toho istého tripu
 - [ ] UAT 9: Používateľ nevie zadať čas príletu skorší ako čas odletu
