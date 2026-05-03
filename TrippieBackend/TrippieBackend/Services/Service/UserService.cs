@@ -7,15 +7,17 @@ using TrippieBackend.Services.IService;
 
 namespace TrippieBackend.Services.Service;
 
-public class UserService : IUserService{
+public class UserService : IUserService
+{
     private readonly TrippieContext _context;
     private readonly IConfiguration _configuration;
     private readonly string _avatarsDir;
 
-    public UserService(TrippieContext context, IConfiguration configuration, IWebHostEnvironment env) {
+    public UserService(TrippieContext context, IConfiguration configuration, IWebHostEnvironment env)
+    {
         _context = context;
         _configuration = configuration;
-        _avatarsDir = Path.Combine(env.ContentRootPath, 
+        _avatarsDir = Path.Combine(env.ContentRootPath,
             configuration["Storage:AvatarsPath"] ?? "Storage/Avatars");
     }
 
@@ -28,7 +30,7 @@ public class UserService : IUserService{
             // ak neexistuje v DB user pre validny token, nieco je zle na serveri
             throw new InvalidOperationException($"[!!!] Authenticated user {userId} not found in DB");
         }
-        
+
         return ServiceResult<UserDto>.Ok(MapToDto(user));
     }
 
@@ -41,14 +43,14 @@ public class UserService : IUserService{
             // ak neexistuje v DB user pre validny token, nieco je zle na serveri
             throw new InvalidOperationException($"[!!!] Authenticated user {userId} not found in DB");
         }
-        
-        user.Firstname =  userPutRequest.Firstname;
+
+        user.Firstname = userPutRequest.Firstname;
         user.Lastname = userPutRequest.Lastname;
         user.PhoneNumber = userPutRequest.PhoneNumber;
-        
+
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
-        
+
         return ServiceResult<bool>.Ok(true);
     }
 
@@ -61,12 +63,12 @@ public class UserService : IUserService{
             // ak neexistuje v DB user pre validny token, nieco je zle na serveri
             throw new InvalidOperationException($"[!!!] Authenticated user {userId} not found in DB");
         }
-        
+
         user.Theme = user.Theme == ThemeEnum.LIGHT ? ThemeEnum.DARK : ThemeEnum.LIGHT;
-        
+
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
-        
+
         return ServiceResult<bool>.Ok(true);
     }
 
@@ -114,7 +116,7 @@ public class UserService : IUserService{
 
         return ServiceResult<bool>.Ok(true);
     }
-    
+
     public async Task<ServiceResult<(byte[] Data, string ContentType)>> GetAvatar(Guid userId)
     {
         var user = await _context.Users.SingleOrDefaultAsync(u => u.Id == userId);
@@ -157,6 +159,22 @@ public class UserService : IUserService{
         return ServiceResult<(byte[], string)>.Ok((data, contentType));
     }
     
+    public async Task<ServiceResult<bool>> UpdateFcmToken(Guid userId, string fcmToken)
+    {
+        var user = await _context.Users.SingleOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"[!!!] Authenticated user {userId} not found in DB");
+        }
+
+        user.FcmToken = fcmToken;
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+
+        Console.WriteLine($"[+] FCM token saved | user:{userId}");
+        return ServiceResult<bool>.Ok(true);
+    }
+
     private UserDto MapToDto(User user)
     {
         return new UserDto()

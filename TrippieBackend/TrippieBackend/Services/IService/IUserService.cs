@@ -10,4 +10,5 @@ public interface IUserService {
     public Task<ServiceResult<bool>> UploadAvatar(Guid userId, IFormFile file);
     public Task<ServiceResult<(byte[] Data, string ContentType)>> GetAvatar(Guid userId);
     public Task<ServiceResult<(byte[] Data, string ContentType)>> GetAvatarById(Guid userId);
+    Task<ServiceResult<bool>> UpdateFcmToken(Guid userId, string fcmToken);
 }

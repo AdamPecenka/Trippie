@@ -18,6 +18,7 @@ public static class ServiceCollection {
         services.AddTransient<IFlightService, FlightService>();
         services.AddTransient<IFavoriteService, FavoriteService>();
         services.AddTransient<ILocationService, LocationService>();
+        services.AddTransient<FcmService>();
 
         return services;
     }

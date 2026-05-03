@@ -19,6 +19,8 @@ public class User
     public ThemeEnum Theme { get; set; } = ThemeEnum.LIGHT;
     
     public string? AvatarPath { get; set; }
+
+    public string? FcmToken { get; set; }
     
 
     public DateTime CreatedAt { get; set; }

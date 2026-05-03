@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trippie_frontend/app/router.dart';
 import 'package:trippie_frontend/core/theme/app_theme.dart';
 import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
+import 'package:trippie_frontend/shared/services/notification_service.dart';
 
 class App extends ConsumerStatefulWidget {
   const App({super.key});
@@ -21,6 +22,7 @@ class _AppState extends ConsumerState<App> {
   void initState() {
     super.initState();
     _initDeepLinks();
+    NotificationService.instance.initialize();
   }
 
   @override

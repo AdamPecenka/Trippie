@@ -6,9 +6,12 @@ import 'package:trippie_frontend/app/app.dart';
 import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
 import 'package:trippie_frontend/features/trip/data/trip_providers.dart';
 import 'package:trippie_frontend/shared/services/location_sharing_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:trippie_frontend/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   if (kDebugMode) {
     HttpOverrides.global = _DevHttpOverrides();

@@ -8,6 +8,7 @@ import 'package:trippie_frontend/shared/providers/trip_hub_provider.dart';
 import 'package:trippie_frontend/shared/services/api_service.dart';
 import 'package:trippie_frontend/shared/services/auth_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:trippie_frontend/shared/services/notification_service.dart';
 
 part 'auth_providers.g.dart';
 
@@ -69,7 +70,8 @@ class AuthNotifier extends _$AuthNotifier {
     try {
       final response = await apiSvc.dio.get('/api/user/me');
       final data = response.data as Map<String, dynamic>;
-      return UserDto.fromJson(data['data'] as Map<String, dynamic>);
+      final user = UserDto.fromJson(data['data'] as Map<String, dynamic>);
+      return user;
     } catch (e) {
       debugPrint('[E] Failed to fetch user on startup: $e');
       await authSvc.clearTokens();
@@ -96,6 +98,7 @@ class AuthNotifier extends _$AuthNotifier {
     );
 
     apiSvc.setAuthToken(dto.accessToken);
+    await NotificationService.instance.registerToken(apiSvc);
     state = AsyncData(dto.user);
   }
 
@@ -129,6 +132,7 @@ class AuthNotifier extends _$AuthNotifier {
     );
 
     apiSvc.setAuthToken(dto.accessToken);
+    await NotificationService.instance.registerToken(apiSvc);
     state = AsyncData(dto.user);
   }
 
@@ -162,6 +166,7 @@ class AuthNotifier extends _$AuthNotifier {
     );
 
     apiSvc.setAuthToken(dto.accessToken);
+    await NotificationService.instance.registerToken(apiSvc);
     state = AsyncData(dto.user);
   }
 
@@ -172,7 +177,6 @@ class AuthNotifier extends _$AuthNotifier {
     await authSvc.clearTokens();
     apiSvc.clearAuthToken();
 
-    // disconnect hub before invalidating
     await ref.read(tripHubProvider).disconnect();
 
     state = const AsyncData(null);

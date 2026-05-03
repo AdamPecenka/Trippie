@@ -8,11 +8,13 @@ using TrippieBackend.Services.IService;
 namespace TrippieBackend.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-public class UserController: ControllerBase {
+[Route("api/[controller]/me")]
+public class UserController : ControllerBase
+{
     private readonly IUserService _userService;
-    
-    public UserController(IUserService userService) {
+
+    public UserController(IUserService userService)
+    {
         _userService = userService;
     }
 
@@ -31,7 +33,7 @@ public class UserController: ControllerBase {
         // service throws exception, middleware catches it and creates 500 response automatically
         return Ok(ApiResponse<UserDto>.Success(result.Value!));
     }
-    
+
     /// <summary>Updates the authenticated user's profile. Email is not updatable.</summary>
     /// <param name="userPutRequest">Fields to update on the authenticated user.</param>
     /// <returns>Doesn't return anything. Optimistic update -> relying on client to keep his updated data</returns>
@@ -43,7 +45,7 @@ public class UserController: ControllerBase {
     public async Task<IActionResult> PutMe([FromBody] UserPutRequestDto userPutRequest)
     {
         Guid userId = Utils.GetUserId(User);
-        
+
         await _userService.PutMe(userId, userPutRequest);
         // optimisticky update, nema sa co pokazit :3
         return NoContent();
@@ -62,7 +64,7 @@ public class UserController: ControllerBase {
         // optimisticky update, nema sa co pokazit :3
         return NoContent();
     }
-    
+
     /// <summary>Upload or replace the authenticated user's avatar.</summary>
     /// <param name="file">Image file (JPEG, PNG or WebP, max 5MB)</param>
     /// <response code="204">Avatar uploaded successfully</response>
@@ -127,5 +129,17 @@ public class UserController: ControllerBase {
             }));
         var (data, contentType) = result.Value;
         return File(data, contentType);
+    }
+    
+    /// <summary>Save or update the FCM token for push notifications.</summary>
+    /// <param name="request">FCM token</param>
+    /// <response code="204">Token saved successfully</response>
+    /// <response code="401">Token is missing or invalid</response>
+    [HttpPatch("fcm-token")]
+    public async Task<IActionResult> UpdateFcmToken([FromBody] UpdateFcmTokenRequestDto request)
+    {
+        Guid userId = Utils.GetUserId(User);
+        await _userService.UpdateFcmToken(userId, request.FcmToken);
+        return NoContent();
     }
 }

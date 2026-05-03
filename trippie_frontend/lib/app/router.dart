@@ -51,11 +51,14 @@ abstract final class AppRoutes {
   static const String joinSuccess = '/home/join/success/:tripId/:tripName';
 }
 
+final appNavigatorKey = GlobalKey<NavigatorState>();
+
 @riverpod
 GoRouter router(Ref ref) {
   final authState = ref.watch(authProvider);
 
   return GoRouter(
+    navigatorKey: appNavigatorKey,
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: true,
     redirect: (BuildContext context, GoRouterState state) {
