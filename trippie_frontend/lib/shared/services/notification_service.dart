@@ -126,6 +126,24 @@ class NotificationService {
     );
   }
 
+  void showTripCreatedNotification(String tripId, String tripName) {
+    _localNotifications.show(
+      tripId.hashCode,
+      'Trip Created!',
+      'Your trip "$tripName" was created successfully',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          _channelId,
+          _channelName,
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+      ),
+      payload: tripId,
+    );
+    debugPrint('[+] Local notification sent for trip: $tripId');
+  }
+
   void _navigateToTrip(String? tripId) {
     if (tripId == null || tripId.isEmpty) {
       debugPrint('[!] FCM nav: no tripId');
