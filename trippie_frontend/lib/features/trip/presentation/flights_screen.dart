@@ -4,11 +4,26 @@ import 'package:go_router/go_router.dart';
 import 'package:trippie_frontend/core/theme/app_theme.dart';
 import 'package:trippie_frontend/features/trip/data/flight_dto.dart';
 import 'package:trippie_frontend/features/trip/data/flight_repository.dart';
-
+import 'package:trippie_frontend/features/trip/presentation/add_flight_screen.dart';
 class FlightsScreen extends ConsumerWidget {
   const FlightsScreen({super.key, required this.tripId});
 
   final String tripId;
+
+  void _openAddFlight(BuildContext context) {
+    context.push('/home/trip/$tripId/flights/add');
+  }
+
+  void _openEditFlight(BuildContext context, WidgetRef ref, FlightDto flight) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AddFlightScreen(
+          tripId: tripId,
+          existing: flight,
+        ),
+      ),
+    ).then((_) => ref.invalidate(tripFlightsProvider(tripId)));
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,8 +53,7 @@ class FlightsScreen extends ConsumerWidget {
                     ),
                     const Spacer(),
                     TextButton.icon(
-                      onPressed: () =>
-                          context.push('/home/trip/$tripId/flights/add'),
+                      onPressed: () => _openAddFlight(context),
                       icon: const Icon(Icons.add, size: 18),
                       label: const Text('Add flight'),
                     ),
@@ -105,6 +119,7 @@ class FlightsScreen extends ConsumerWidget {
                                 tripId: tripId,
                                 onDeleted: () =>
                                     ref.invalidate(tripFlightsProvider(tripId)),
+                                onEdit: () => _openEditFlight(context, ref, f),
                               )),
                           const SizedBox(height: 16),
                         ],
@@ -116,6 +131,7 @@ class FlightsScreen extends ConsumerWidget {
                                 tripId: tripId,
                                 onDeleted: () =>
                                     ref.invalidate(tripFlightsProvider(tripId)),
+                                onEdit: () => _openEditFlight(context, ref, f),
                               )),
                         ],
                       ],
@@ -152,15 +168,27 @@ class _FlightCard extends ConsumerWidget {
     required this.flight,
     required this.tripId,
     required this.onDeleted,
+    required this.onEdit,
   });
 
   final FlightDto flight;
   final String tripId;
   final VoidCallback onDeleted;
+  final VoidCallback onEdit;
 
   String _formatDateTime(DateTime? dt) {
     if (dt == null) return '—';
     return '${dt.day}.${dt.month}. ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _duration(DateTime dep, DateTime arr) {
+    final diff = arr.difference(dep);
+    if (diff.isNegative) return '';
+    final h = diff.inHours;
+    final m = diff.inMinutes.remainder(60);
+    if (h == 0) return '${m}m';
+    if (m == 0) return '${h}h';
+    return '${h}h ${m}m';
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
@@ -201,76 +229,142 @@ class _FlightCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+      child: InkWell(
+        onTap: onEdit,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      flight.routeLabel,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    if (flight.flightNumber != null) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF7B68EE).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          flight.flightNumber!,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF7B68EE),
-                            fontWeight: FontWeight.w600,
+                    // City names — main display
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${flight.departureCityName} → ${flight.arrivalCityName}',
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
+                        if (flight.flightNumber != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF7B68EE).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              flight.flightNumber!,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF7B68EE),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // IATA codes — secondary
+                    Row(
+                      children: [
+                        _IataChip(code: flight.departureIataCode),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 6),
+                          child: Icon(Icons.flight_takeoff,
+                              size: 14, color: AppColors.textSecondary),
+                        ),
+                        _IataChip(code: flight.arrivalIataCode),
+                      ],
+                    ),
+                    if (flight.departureTime != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.access_time,
+                              size: 12, color: AppColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${_formatDateTime(flight.departureTime)} → ${_formatDateTime(flight.arrivalTime)}',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                          ),
+                          // Duration
+                          if (flight.departureTime != null &&
+                              flight.arrivalTime != null) ...[
+                            const SizedBox(width: 6),
+                            Text(
+                              _duration(
+                                  flight.departureTime!, flight.arrivalTime!),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: AppColors.accent,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${flight.departureCityName} → ${flight.arrivalCityName}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                ),
-                if (flight.departureTime != null) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.access_time,
-                          size: 12, color: AppColors.textSecondary),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${_formatDateTime(flight.departureTime)} → ${_formatDateTime(flight.arrivalTime)}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                      ),
-                    ],
+              ),
+              // Actions
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined,
+                        size: 20, color: AppColors.accent),
+                    onPressed: onEdit,
+                    tooltip: 'Edit',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline,
+                        size: 20, color: Colors.redAccent),
+                    onPressed: () => _confirmDelete(context, ref),
+                    tooltip: 'Delete',
                   ),
                 ],
-              ],
-            ),
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline,
-                size: 20, color: Colors.redAccent),
-            onPressed: () => _confirmDelete(context, ref),
-          ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IataChip extends StatelessWidget {
+  const _IataChip({required this.code});
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.accent.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        code,
+        style: const TextStyle(
+          fontWeight: FontWeight.w800,
+          fontSize: 13,
+          color: AppColors.accent,
+        ),
       ),
     );
   }

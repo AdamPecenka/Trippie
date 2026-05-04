@@ -48,6 +48,21 @@ class FlightRepository {
     }
   }
 
+  Future<void> patchFlight(
+    String tripId,
+    String flightId,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      await apiService.dio.patch(
+        '/api/trips/$tripId/flights/$flightId',
+        data: body,
+      );
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
   Future<void> deleteFlight(String tripId, String flightId) async {
     try {
       await apiService.dio.delete('/api/trips/$tripId/flights/$flightId');

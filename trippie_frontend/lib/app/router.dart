@@ -44,13 +44,17 @@ class AppRoutes {
   static const String createTrip = '/home/create';
   static const String joinTrip = '/home/join';
   static const String tripDetail = '/home/trip/:tripId';
-  static const String tripActivities = '/home/trip/:tripId/activities';
+  static const String tripHub = '/home/trip/:tripId/hub';
   static const String tripMembers = '/home/trip/:tripId/members';
   static const String invite = '/home/trip/:tripId/invite';
   static const String createActivity = '/home/trip/:tripId/activity/create';
   static const String scanQr = '/home/join/scan';
   static const String enterCode = '/home/join/code';
   static const String joinSuccess = '/home/join/success/:tripId/:tripName';
+
+  // Top-level routes (no bottom navbar — full-screen flows)
+  static const String tripFlights = '/home/trip/:tripId/flights';
+  static const String tripAccommodation = '/home/trip/:tripId/accommodation';
 }
 
 final appNavigatorKey = GlobalKey<NavigatorState>();
@@ -72,7 +76,6 @@ GoRouter router(Ref ref) {
       if (authState.isLoading && state.matchedLocation == AppRoutes.splash) {
         return null;
       }
-
       if (authState.isLoading && isOnAuthScreen) {
         return null;
       }
@@ -82,7 +85,6 @@ GoRouter router(Ref ref) {
       if (!isAuthenticated && !isOnAuthScreen) {
         return AppRoutes.login;
       }
-
       if (isAuthenticated && isOnAuthScreen) {
         return AppRoutes.home;
       }
@@ -90,6 +92,7 @@ GoRouter router(Ref ref) {
       return null;
     },
     routes: [
+      // ── Auth ────────────────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.splash,
         builder: (context, state) => const SplashScreen(),
@@ -106,6 +109,8 @@ GoRouter router(Ref ref) {
         path: AppRoutes.myAccount,
         builder: (context, state) => const MyAccountScreen(),
       ),
+
+      // ── Full-screen trip sub-screens (no bottom navbar) ──────────────────
       GoRoute(
         path: '/home/trip/:tripId/flights',
         builder: (context, state) {
@@ -120,7 +125,9 @@ GoRouter router(Ref ref) {
           return AddFlightScreen(tripId: tripId);
         },
       ),
+      // AddAccommodationScreen navigated imperatively (needs trip dates from provider).
 
+      // ── Main shell (with bottom navbar) ──────────────────────────────────
       StatefulShellRoute.indexedStack(
         builder:
             (
@@ -170,11 +177,13 @@ GoRouter router(Ref ref) {
                   ),
                   GoRoute(
                     path: 'trip/:tripId',
+                    // Default: activities view
                     builder: (context, state) {
                       final tripId = state.pathParameters['tripId']!;
                       return TripDetailScreen(tripId: tripId);
                     },
                     routes: [
+                      // Hub: flights, accommodation, members, map
                       GoRoute(
                         path: 'hub',
                         builder: (context, state) {

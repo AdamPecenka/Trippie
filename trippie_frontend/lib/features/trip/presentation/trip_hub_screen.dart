@@ -1,3 +1,5 @@
+// lib/features/trip/presentation/trip_hub_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,7 +7,8 @@ import 'package:trippie_frontend/core/theme/app_theme.dart';
 import 'package:trippie_frontend/features/trip/data/flight_repository.dart';
 import 'package:trippie_frontend/features/trip/data/trip_providers.dart';
 import 'package:trippie_frontend/features/trip/data/trip_enums.dart';
-import 'package:trippie_frontend/features/trip/data/trip_dto.dart';
+import 'package:trippie_frontend/features/trip/presentation/add_accommodation_screen.dart';
+import 'package:trippie_frontend/features/trip/presentation/widgets/trip_state_badge.dart';
 
 class TripHubScreen extends ConsumerWidget {
   const TripHubScreen({super.key, required this.tripId});
@@ -14,36 +17,14 @@ class TripHubScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tripsAsync = ref.watch(tripsProvider);
-    final trip = tripsAsync.whenOrNull(
-      data: (trips) => trips.where((t) => t.id == tripId).firstOrNull,
-    );
+    final trip = ref.watch(tripsProvider).whenOrNull(
+          data: (trips) => trips.where((t) => t.id == tripId).firstOrNull,
+        );
 
-    final activitiesAsync = ref.watch(tripActivitiesProvider(tripId));
-    final membersAsync = ref.watch(tripMembersProvider(tripId));
-    final accommodationAsync = ref.watch(tripAccommodationProvider(tripId));
+    // Real data providers — these automatically update when data changes
     final flightsAsync = ref.watch(tripFlightsProvider(tripId));
-
-    final activityCount = activitiesAsync.whenOrNull(data: (l) => l.length) ?? 0;
-    final memberCount = membersAsync.whenOrNull(data: (l) => l.length) ?? 0;
-    final hasAccommodation = accommodationAsync.whenOrNull(data: (a) => a != null) ?? false;
-    final mapPins = activitiesAsync.whenOrNull(
-          data: (l) => l.where((a) => a.place != null).length,
-        ) ?? 0;
-    final flights = flightsAsync.whenOrNull(data: (l) => l) ?? [];
-    final hasOutbound = flights.any((f) => f.isOutbound);
-    final hasReturn = flights.any((f) => !f.isOutbound);
-    final hasFlights = flights.isNotEmpty;
-
-    // completion score (out of 10)
-    int score = 0;
-    if (activityCount > 0) score += 3;
-    if (activityCount >= 3) score += 1;
-    if (hasAccommodation) score += 2;
-    if (memberCount > 1) score += 2;
-    if (mapPins > 0) score += 1;
-    if (trip?.startDate != null) score += 1;
-    final percent = (score / 10.0).clamp(0.0, 1.0);
+    final accommodationAsync = ref.watch(tripAccommodationProvider(tripId));
+    final membersAsync = ref.watch(tripMembersProvider(tripId));
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -56,9 +37,8 @@ class TripHubScreen extends ConsumerWidget {
         child: SafeArea(
           bottom: false,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Header ──────────────────────────────────────────
+              // ── Header (same style as TripDetailScreen) ───────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
                 child: Row(
@@ -68,157 +48,190 @@ class TripHubScreen extends ConsumerWidget {
                       onPressed: () => context.pop(),
                     ),
                     const Spacer(),
-                    const Icon(Icons.menu),
+                    if (trip != null) TripStateBadge(status: trip.status),
                   ],
                 ),
               ),
 
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-                child: trip == null
-                    ? const SizedBox.shrink()
-                    : Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(trip.name,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineMedium),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _formatDateRange(trip),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                          color: AppColors.textSecondary),
-                                ),
-                              ],
-                            ),
-                          ),
-                          _StatusBadge(status: trip.status),
-                        ],
-                      ),
-              ),
-
-              // ── Progress bar ─────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              // Trip name + dates
+              if (trip != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(trip.name,
+                            style: Theme.of(context).textTheme.headlineMedium),
+                        const SizedBox(height: 2),
                         Text(
-                          'Trip is ${(percent * 100).round()}% ready ${percent >= 0.7 ? '🎉' : ''}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: AppColors.textSecondary),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '$score/10',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                color: const Color(0xFF7B68EE),
-                                fontWeight: FontWeight.w600,
+                          '${_fmt(trip.startDate)} – ${_fmt(trip.endDate)}',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppColors.textSecondary,
                               ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0, end: percent),
-                        duration: const Duration(milliseconds: 600),
-                        curve: Curves.easeOutCubic,
-                        builder: (_, value, __) => LinearProgressIndicator(
-                          value: value,
-                          minHeight: 6,
-                          backgroundColor: Theme.of(context).cardColor,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            percent >= 0.7
-                                ? Colors.green.shade400
-                                : const Color(0xFF7B68EE),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 20),
-
-              // ── Module cards ─────────────────────────────────────
+              // ── Module cards ──────────────────────────────────────
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.fromLTRB(
-                    24, 0, 24,
-                    MediaQuery.of(context).padding.bottom + 100,
+                    20, 4, 20,
+                    MediaQuery.of(context).padding.bottom + 24,
                   ),
                   children: [
+                    _SectionLabel(label: 'BOOKINGS'),
+                    const SizedBox(height: 10),
+
+                    // Flights card — driven by tripFlightsProvider
+                    flightsAsync.when(
+                      loading: () => _ModuleCard(
+                        emoji: '✈️',
+                        title: 'Flights',
+                        subtitle: 'Loading...',
+                        isDone: false,
+                        isPartial: false,
+                        onTap: () => context.push('/home/trip/$tripId/flights'),
+                      ),
+                      error: (_, __) => _ModuleCard(
+                        emoji: '✈️',
+                        title: 'Flights',
+                        subtitle: 'Add your flights',
+                        isDone: false,
+                        isPartial: false,
+                        onTap: () => context.push('/home/trip/$tripId/flights'),
+                      ),
+                      data: (flights) {
+                        final hasOut = flights.any(
+                            (f) => f.travelDirection.toUpperCase() == 'OUTBOUND');
+                        final hasRet = flights.any(
+                            (f) => f.travelDirection.toUpperCase() == 'RETURN');
+                        final done = hasOut && hasRet;
+                        final partial = hasOut || hasRet;
+                        return _ModuleCard(
+                          emoji: '✈️',
+                          title: 'Flights',
+                          subtitle: done
+                              ? 'Both flights confirmed'
+                              : partial
+                                  ? hasOut
+                                      ? 'Outbound ✓  ·  Return missing'
+                                      : 'Return ✓  ·  Outbound missing'
+                                  : 'Add your flights',
+                          isDone: done,
+                          isPartial: partial && !done,
+                          onTap: () =>
+                              context.push('/home/trip/$tripId/flights'),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Accommodation card — driven by tripAccommodationProvider
+                    accommodationAsync.when(
+                      loading: () => _ModuleCard(
+                        emoji: '🏨',
+                        title: 'Accommodation',
+                        subtitle: 'Loading...',
+                        isDone: false,
+                        isPartial: false,
+                        onTap: () => _openAccommodation(context, ref, null),
+                      ),
+                      error: (_, __) => _ModuleCard(
+                        emoji: '🏨',
+                        title: 'Accommodation',
+                        subtitle: 'Add your place to stay',
+                        isDone: false,
+                        isPartial: false,
+                        onTap: () => _openAccommodation(context, ref, null),
+                      ),
+                      data: (accommodation) => _ModuleCard(
+                        emoji: '🏨',
+                        title: 'Accommodation',
+                        subtitle: accommodation != null
+                            ? accommodation.placeName
+                            : 'Add your place to stay',
+                        isDone: accommodation != null,
+                        isPartial: false,
+                        onTap: () =>
+                            _openAccommodation(context, ref, accommodation),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+                    const Divider(height: 1, color: AppColors.inputBorder),
+                    const SizedBox(height: 20),
+
+                    _SectionLabel(label: 'CREW'),
+                    const SizedBox(height: 10),
+
+                    // Members card — driven by tripMembersProvider
+                    membersAsync.when(
+                      loading: () => _ModuleCard(
+                        emoji: '👥',
+                        title: 'Members',
+                        subtitle: 'Loading...',
+                        isDone: false,
+                        isPartial: false,
+                        onTap: () =>
+                            context.push('/home/trip/$tripId/members'),
+                      ),
+                      error: (_, __) => _ModuleCard(
+                        emoji: '👥',
+                        title: 'Members',
+                        subtitle: 'View members',
+                        isDone: false,
+                        isPartial: false,
+                        onTap: () =>
+                            context.push('/home/trip/$tripId/members'),
+                      ),
+                      data: (members) {
+                        final count = members.length;
+                        return _ModuleCard(
+                          emoji: '👥',
+                          title: 'Members',
+                          subtitle: count > 1
+                              ? '$count members'
+                              : 'Solo — invite your friends!',
+                          isDone: count > 1,
+                          isPartial: false,
+                          onTap: () =>
+                              context.push('/home/trip/$tripId/members'),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 20),
+                    const Divider(height: 1, color: AppColors.inputBorder),
+                    const SizedBox(height: 20),
+
+                    _SectionLabel(label: 'PLANS'),
+                    const SizedBox(height: 10),
+
                     _ModuleCard(
-                      icon: '🗓',
+                      emoji: '📍',
                       title: 'Activities',
-                      subtitle: activityCount > 0
-                          ? '$activityCount ${activityCount == 1 ? 'activity' : 'activities'} planned'
-                          : '+ Add when ready',
-                      subtitleColor: activityCount > 0 ? null : const Color(0xFF7B68EE),
-                      done: activityCount > 0,
-                      onTap: () => context.pop(), // back to activities screen
+                      subtitle: 'Back to the itinerary',
+                      isDone: false,
+                      isPartial: false,
+                      onTap: () => context.pop(),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     _ModuleCard(
-                      icon: '✈️',
-                      title: 'Flights',
-                      subtitle: hasFlights
-                          ? '${hasOutbound ? 'Outbound' : ''}${hasOutbound && hasReturn ? ' + ' : ''}${hasReturn ? 'Return' : ''} added'
-                          : '+ Add when ready',
-                      subtitleColor: hasFlights ? null : const Color(0xFF7B68EE),
-                      done: hasOutbound && hasReturn,
-                      onTap: () => context.push('/home/trip/$tripId/flights'),
-                    ),
-                    const SizedBox(height: 12),
-                    _ModuleCard(
-                      icon: '🏨',
-                      title: 'Accommodation',
-                      subtitle: hasAccommodation
-                          ? 'Accommodation added'
-                          : '+ Still looking...',
-                      subtitleColor: hasAccommodation ? null : AppColors.textSecondary,
-                      done: hasAccommodation,
-                      onTap: () => context.push('/home/trip/$tripId/accommodation'),
-                    ),
-                    const SizedBox(height: 12),
-                    _ModuleCard(
-                      icon: '👥',
-                      title: 'Members',
-                      subtitle: memberCount > 0
-                          ? '$memberCount ${memberCount == 1 ? 'person' : 'people'} joined'
-                          : '+ Invite friends',
-                      subtitleColor: memberCount > 1 ? null : const Color(0xFF7B68EE),
-                      done: memberCount > 1,
-                      onTap: () => context.push('/home/trip/$tripId/members'),
-                    ),
-                    const SizedBox(height: 12),
-                    _ModuleCard(
-                      icon: '🗺',
+                      emoji: '🗺️',
                       title: 'Map',
-                      subtitle: mapPins > 0
-                          ? '$mapPins ${mapPins == 1 ? 'pin' : 'pins'} on map'
-                          : '+ Add activities to see map',
-                      subtitleColor: mapPins > 0 ? null : AppColors.textSecondary,
-                      done: mapPins > 0,
-                      onTap: () => context.push('/map'),
+                      subtitle: 'Coming soon',
+                      isDone: false,
+                      isPartial: false,
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Map — coming soon 🗺️')),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -230,91 +243,111 @@ class TripHubScreen extends ConsumerWidget {
     );
   }
 
-  String _formatDateRange(TripDto trip) {
-    final s = trip.startDate;
-    final e = trip.endDate;
-    const months = [
+  void _openAccommodation(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic existing,
+  ) {
+    final trip = ref.read(tripsProvider).whenOrNull(
+          data: (trips) => trips.where((t) => t.id == tripId).firstOrNull,
+        );
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AddAccommodationScreen(
+          tripId: tripId,
+          existing: existing,
+          onSaved: (_) => ref.invalidate(tripAccommodationProvider(tripId)),
+        ),
+      ),
+    );
+  }
+
+  String _fmt(DateTime d) {
+    const m = [
       '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
-    return '${s.day}. ${months[s.month]} – ${e.day}. ${months[e.month]} ${e.year}';
+    return '${d.day}. ${m[d.month]} ${d.year}';
   }
 }
 
-// ── Module card ────────────────────────────────────────────────────
+// ── Module card ───────────────────────────────────────────────────────────────
+
 class _ModuleCard extends StatelessWidget {
   const _ModuleCard({
-    required this.icon,
+    required this.emoji,
     required this.title,
     required this.subtitle,
-    required this.done,
+    required this.isDone,
+    required this.isPartial,
     required this.onTap,
-    this.subtitleColor,
   });
 
-  final String icon;
+  final String emoji;
   final String title;
   final String subtitle;
-  final bool done;
+  final bool isDone;
+  final bool isPartial;
   final VoidCallback onTap;
-  final Color? subtitleColor;
+
+  Color get _statusColor {
+    if (isDone) return const Color(0xFF4CAF50);
+    if (isPartial) return const Color(0xFFFFB300);
+    return AppColors.textSecondary;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).cardColor,
-      borderRadius: BorderRadius.circular(16),
-      elevation: 1,
+    return Card(
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // done indicator
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: done
-                      ? Colors.green.shade50
-                      : Theme.of(context).cardColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: done
-                        ? Colors.green.shade300
-                        : Colors.grey.shade300,
-                    width: 1.5,
-                  ),
-                ),
-                child: Center(
-                  child: done
-                      ? Icon(Icons.check,
-                          size: 18, color: Colors.green.shade500)
-                      : Text(icon,
-                          style: const TextStyle(fontSize: 18)),
-                ),
-              ),
+              Text(emoji, style: const TextStyle(fontSize: 26)),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title,
-                        style: Theme.of(context).textTheme.titleSmall),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: subtitleColor ?? AppColors.textSecondary,
-                          ),
-                    ),
+                    Text(subtitle,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                              fontSize: 13,
+                            )),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right,
-                  color: AppColors.textSecondary, size: 20),
+              const SizedBox(width: 8),
+              // Checkmark when done, else chevron
+              if (isDone)
+                const Icon(Icons.check_circle,
+                    color: Color(0xFF4CAF50), size: 22)
+              else if (isPartial)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFB300).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text('Partial',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFFFFB300))),
+                )
+              else
+                Icon(Icons.chevron_right,
+                    color: AppColors.textSecondary, size: 20),
             ],
           ),
         ),
@@ -323,44 +356,22 @@ class _ModuleCard extends StatelessWidget {
   }
 }
 
-// ── Status badge ───────────────────────────────────────────────────
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.status});
+// ── Section label ─────────────────────────────────────────────────────────────
 
-  final TripStatus status;
-
-  Color get _color {
-    switch (status) {
-      case TripStatus.active:   return AppColors.statusActive;
-      case TripStatus.planning: return AppColors.statusPlanning;
-      case TripStatus.finished: return AppColors.statusFinished;
-    }
-  }
-
-  String get _label {
-    switch (status) {
-      case TripStatus.active:   return 'ACTIVE';
-      case TripStatus.planning: return 'PLANNING';
-      case TripStatus.finished: return 'FINISHED';
-    }
-  }
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel({required this.label});
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: _color,
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Text(
-        _label,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+    return Text(
+      label,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: AppColors.textSecondary,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.0,
+          ),
     );
   }
 }

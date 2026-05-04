@@ -29,10 +29,8 @@ class FlightDto {
     required this.id,
     required this.travelDirection,
     this.flightNumber,
-    required this.departureIataCode,
-    required this.departureCityName,
-    required this.arrivalIataCode,
-    required this.arrivalCityName,
+    required this.departure,
+    required this.arrival,
     this.departureTime,
     this.arrivalTime,
   });
@@ -40,10 +38,8 @@ class FlightDto {
   final String id;
   final String travelDirection; // OUTBOUND / RETURN
   final String? flightNumber;
-  final String departureIataCode;
-  final String departureCityName;
-  final String arrivalIataCode;
-  final String arrivalCityName;
+  final AirportDto departure;
+  final AirportDto arrival;
   final DateTime? departureTime;
   final DateTime? arrivalTime;
 
@@ -51,10 +47,8 @@ class FlightDto {
         id: json['id'] as String,
         travelDirection: json['travelDirection'] as String,
         flightNumber: json['flightNumber'] as String?,
-        departureIataCode: json['departureIataCode'] as String,
-        departureCityName: json['departureCityName'] as String,
-        arrivalIataCode: json['arrivalIataCode'] as String,
-        arrivalCityName: json['arrivalCityName'] as String,
+        departure: AirportDto.fromJson(json['departure'] as Map<String, dynamic>),
+        arrival: AirportDto.fromJson(json['arrival'] as Map<String, dynamic>),
         departureTime: json['departureTime'] != null
             ? DateTime.parse(json['departureTime'] as String)
             : null,
@@ -64,7 +58,12 @@ class FlightDto {
       );
 
   String get routeLabel =>
-      '$departureIataCode → $arrivalIataCode';
+      '${departure.iataCode} → ${arrival.iataCode}';
 
   bool get isOutbound => travelDirection == 'OUTBOUND';
+
+  String get departureIataCode => departure.iataCode;
+  String get arrivalIataCode => arrival.iataCode;
+  String get departureCityName => departure.city;
+  String get arrivalCityName => arrival.city;
 }

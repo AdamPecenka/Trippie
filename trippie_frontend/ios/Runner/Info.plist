@@ -70,5 +70,19 @@
 	<string>Trippie needs your location to show you on the map.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Trippie needs your location to show you on the map.</string>
+
+	<key>CFBundleURLTypes</key>
+	<array>
+	<dict>
+		<key>CFBundleTypeRole</key>
+		<string>Editor</string>
+		<key>CFBundleURLName</key>
+		<string>com.google.gms.clients</string>
+		<key>CFBundleURLSchemes</key>
+		<array>
+		<string>com.googleusercontent.apps.79141696315-rt3fnk1abqkjcv30mpjodh1thhs2h5g7</string>
+		</array>
+	</dict>
+	</array>
 </dict>
 </plist>

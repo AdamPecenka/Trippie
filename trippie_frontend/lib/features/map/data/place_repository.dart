@@ -20,8 +20,8 @@ class PlaceRepository {
   Future<List<PlaceSuggestionDto>> search(String query, {double? lat, double? lng}) async {
     try {
       final queryParams = <String, dynamic>{'query': query};
-      if (lat != null) queryParams['lat'] = lat;
-      if (lng != null) queryParams['lng'] = lng;
+      if (lat != null) queryParams['latitude'] = lat;
+      if (lng != null) queryParams['longitude'] = lng;
 
       final response = await apiService.dio.get(
         '/api/places/search',

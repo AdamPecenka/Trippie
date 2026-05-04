@@ -140,11 +140,19 @@ class ActivityRepository {
     }
   }
 
-  Future<List<PlaceSuggestionDto>> searchPlaces(String query) async {
+  Future<List<PlaceSuggestionDto>> searchPlaces(
+    String query, {
+    double? latitude,
+    double? longitude,
+  }) async {
     try {
+      final queryParameters = <String, dynamic>{'query': query};
+      if (latitude != null) queryParameters['latitude'] = latitude;
+      if (longitude != null) queryParameters['longitude'] = longitude;
+
       final response = await apiService.dio.get(
         '/api/places/search',
-        queryParameters: {'query': query},
+        queryParameters: queryParameters,
       );
       final data = response.data as Map<String, dynamic>;
       final list = data['data'] as List<dynamic>;

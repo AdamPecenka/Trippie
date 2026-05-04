@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:trippie_frontend/features/map/data/member_last_location_dto.dart';
 import 'package:trippie_frontend/features/trip/data/accommodation_dto.dart';
 import 'package:trippie_frontend/features/trip/data/activity_dto.dart';
+import 'package:trippie_frontend/features/trip/data/flight_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_member_dto.dart';
 import 'package:trippie_frontend/shared/services/api_service.dart';
@@ -18,6 +19,32 @@ class TripRepository {
       final list = data['data'] as List<dynamic>;
       return list
           .map((e) => TripDto.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  Future<TripDto> getTrip(String tripId) async {
+    try {
+      final response = await apiService.dio.get('/api/trips/$tripId');
+      final data = response.data as Map<String, dynamic>;
+      return TripDto.fromJson(data['data'] as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  Future<List<AirportDto>> searchAirports(String query, {int limit = 10}) async {
+    try {
+      final response = await apiService.dio.get(
+        '/api/airports',
+        queryParameters: {'search': query, 'limit': limit},
+      );
+      final data = response.data as Map<String, dynamic>;
+      final list = data['data'] as List<dynamic>;
+      return list
+          .map((e) => AirportDto.fromJson(e as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
       throw _mapError(e);

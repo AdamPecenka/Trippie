@@ -7,6 +7,9 @@ class TripDto {
     required this.status,
     required this.startDate,
     required this.endDate,
+    this.destination,
+    this.myRole,
+    this.memberCount,
   });
 
   final String id;
@@ -14,6 +17,9 @@ class TripDto {
   final TripStatus status;
   final DateTime startDate;
   final DateTime endDate;
+  final String? destination;
+  final TripRole? myRole;
+  final int? memberCount;
 
   factory TripDto.fromJson(Map<String, dynamic> json) {
     return TripDto(
@@ -22,6 +28,9 @@ class TripDto {
       status: TripStatusX.fromString(json['tripStatus'] as String),
       startDate: DateTime.parse(json['startDate'] as String),
       endDate: DateTime.parse(json['endDate'] as String),
+      destination: json['destination'] as String?,
+      myRole: json['myRole'] != null ? TripRoleX.fromString(json['myRole'] as String) : null,
+      memberCount: json['memberCount'] as int?,
     );
   }
 }
