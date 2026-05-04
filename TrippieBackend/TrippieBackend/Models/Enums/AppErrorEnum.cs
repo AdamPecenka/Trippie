@@ -55,6 +55,7 @@ public enum AppErrorEnum
     
     // --- Flights ---
     Flight_Not_Found,
+    Flight_Arrival_Before_Departure,
     
     // --- Favotites ---
     Favorite_Not_Found,

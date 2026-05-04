@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TrippieBackend.Models;
 using TrippieBackend.Models.DTOs.Flights;
+using TrippieBackend.Models.DTOs;
 using TrippieBackend.Models.Enums;
 using TrippieBackend.Models.Model;
 using TrippieBackend.Services.IService;
@@ -53,6 +54,20 @@ public class FlightService : IFlightService
 
         if (arrivalAirport == null)
             return ServiceResult<FlightDto>.Fail(404, AppErrorEnum.Airport_Not_Found.ToString());
+
+        // --- TIME TRAVEL CHECK ---
+        // ArrivalTime must be after DepartureTime (in UTC).
+        // If not, reject with a clear error so the FE "Cestovanie v čase" badge
+        // is confirmed by the backend as well.
+        
+        if (request.DepartureTime.HasValue && request.ArrivalTime.HasValue)
+        {
+            var dep = DateTime.SpecifyKind(request.DepartureTime.Value, DateTimeKind.Utc);
+            var arr = DateTime.SpecifyKind(request.ArrivalTime.Value, DateTimeKind.Utc);
+        
+            if (arr <= dep)
+                return ServiceResult<FlightDto>.Fail(400, AppErrorEnum.Flight_Arrival_Before_Departure.ToString());
+        }
 
         var flight = new Flight
         {
@@ -143,10 +158,28 @@ public class FlightService : IFlightService
         Id = f.Id,
         TravelDirection = f.TravelDirection,
         FlightNumber = f.FlightNumber,
-        DepartureIataCode = f.DepartureAirport.IataCode,
-        DepartureCityName = f.DepartureAirport.City,
-        ArrivalIataCode = f.ArrivalAirport.IataCode,
-        ArrivalCityName = f.ArrivalAirport.City,
+        Departure = new AirportDto
+        {
+            Id = f.DepartureAirport.Id,
+            Name = f.DepartureAirport.Name,
+            City = f.DepartureAirport.City,
+            Country = f.DepartureAirport.Country,
+            IataCode = f.DepartureAirport.IataCode,
+            Latitude = f.DepartureAirport.Latitude,
+            Longitude = f.DepartureAirport.Longitude,
+            Timezone = f.DepartureAirport.Timezone
+        },
+        Arrival = new AirportDto
+        {
+            Id = f.ArrivalAirport.Id,
+            Name = f.ArrivalAirport.Name,
+            City = f.ArrivalAirport.City,
+            Country = f.ArrivalAirport.Country,
+            IataCode = f.ArrivalAirport.IataCode,
+            Latitude = f.ArrivalAirport.Latitude,
+            Longitude = f.ArrivalAirport.Longitude,
+            Timezone = f.ArrivalAirport.Timezone
+        },
         DepartureTime = f.DepartureTime,
         ArrivalTime = f.ArrivalTime
     };

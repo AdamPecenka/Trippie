@@ -1,4 +1,5 @@
 ﻿using TrippieBackend.Models.Enums;
+using TrippieBackend.Models.DTOs;
 
 namespace TrippieBackend.Models.DTOs.Flights;
 
@@ -17,7 +18,11 @@ public class FlightDto
     public string ArrivalIataCode { get; set; } = string.Empty;
     
     public string ArrivalCityName { get; set; } = string.Empty;
-    
+
+    public AirportDto Arrival { get; set; } = null!;
+
+    public AirportDto Departure { get; set; } = null!;
+
     public DateTime? DepartureTime { get; set; }
     
     public DateTime? ArrivalTime { get; set; }
