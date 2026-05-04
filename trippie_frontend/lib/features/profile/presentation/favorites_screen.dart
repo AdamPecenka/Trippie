@@ -57,14 +57,10 @@ class FavoritesScreen extends ConsumerWidget {
                       ],
                     ),
                     const Spacer(),
-                    GestureDetector(
-                      onTap: () => _showAddSheet(context, ref),
-                      child: Container(
-                        width: 44, height: 44,
-                        decoration: const BoxDecoration(
-                          color: Color.fromRGBO(181, 130, 248, 1), shape: BoxShape.circle),
-                        child: const Icon(Icons.add, color: Colors.white, size: 22),
-                      ),
+                    TextButton.icon(
+                      onPressed: () => _showAddSheet(context, ref),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Add Favorite'),
                     ),
                   ],
                 ),

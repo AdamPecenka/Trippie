@@ -33,7 +33,7 @@ abstract final class AppColors {
   static const Color inputFill = Color(0xFFF9F9F9);
 
   // Link / accent
-  static const Color accent = Color(0xFF5B8DEF);
+  static const Color accent = Color(0xFF6B5FA6);
 
   // Dark mode equivalents
   static const Color darkGradientTop = Color(0xFF2E1F1A);
