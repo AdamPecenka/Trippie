@@ -10,9 +10,10 @@ import 'package:trippie_frontend/features/trip/data/trip_providers.dart';
 import 'package:trippie_frontend/features/trip/presentation/widgets/activity_form_widgets.dart';
 
 class AddActivityScreen extends ConsumerStatefulWidget {
-  const AddActivityScreen({super.key, required this.tripId});
+  const AddActivityScreen({super.key, required this.tripId, this.initialPlace});
 
   final String tripId;
+  final PlaceDto? initialPlace;
 
   @override
   ConsumerState<AddActivityScreen> createState() => _AddActivityScreenState();
@@ -36,6 +37,16 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
   Timer? _debounce;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.initialPlace != null) {
+      _selectedPlace = widget.initialPlace;
+      _searchController.text = widget.initialPlace!.name;
+      _nameController.text = widget.initialPlace!.name;
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _searchController.dispose();
@@ -45,12 +56,23 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
   }
 
   List<DateTime> get _tripDays {
-    final trip = ref.read(tripsProvider).whenOrNull(
-          data: (trips) => trips.where((t) => t.id == widget.tripId).firstOrNull,
+    final trip = ref
+        .read(tripsProvider)
+        .whenOrNull(
+          data: (trips) =>
+              trips.where((t) => t.id == widget.tripId).firstOrNull,
         );
     if (trip == null) return [];
-    final start = DateTime(trip.startDate.year, trip.startDate.month, trip.startDate.day);
-    final end = DateTime(trip.endDate.year, trip.endDate.month, trip.endDate.day);
+    final start = DateTime(
+      trip.startDate.year,
+      trip.startDate.month,
+      trip.startDate.day,
+    );
+    final end = DateTime(
+      trip.endDate.year,
+      trip.endDate.month,
+      trip.endDate.day,
+    );
     final days = <DateTime>[];
     var d = start;
     while (!d.isAfter(end)) {
@@ -66,11 +88,15 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
   String _toApiDate(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-  bool get _canSubmit => _nameController.text.trim().isNotEmpty && !_submitting && !_hasInvalidTime;
+  bool get _canSubmit =>
+      _nameController.text.trim().isNotEmpty &&
+      !_submitting &&
+      !_hasInvalidTime;
 
   bool get _hasInvalidTime {
     if (_startTime == null || _endTime == null) return false;
-    return (_endTime!.hour * 60 + _endTime!.minute) <= (_startTime!.hour * 60 + _startTime!.minute);
+    return (_endTime!.hour * 60 + _endTime!.minute) <=
+        (_startTime!.hour * 60 + _startTime!.minute);
   }
 
   void _onSearchChanged(String query) {
@@ -82,7 +108,9 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
     _debounce = Timer(const Duration(milliseconds: 350), () async {
       setState(() => _searchLoading = true);
       try {
-        final results = await ref.read(activityRepositoryProvider).searchPlaces(query);
+        final results = await ref
+            .read(activityRepositoryProvider)
+            .searchPlaces(query);
         setState(() => _suggestions = results);
       } catch (_) {
         setState(() => _suggestions = []);
@@ -95,7 +123,9 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
   Future<void> _onSuggestionTap(PlaceSuggestionDto suggestion) async {
     setState(() => _searchLoading = true);
     try {
-      final place = await ref.read(activityRepositoryProvider).resolvePlace(suggestion.googlePlaceId);
+      final place = await ref
+          .read(activityRepositoryProvider)
+          .resolvePlace(suggestion.googlePlaceId);
       setState(() {
         _selectedPlace = place;
         _suggestions = [];
@@ -126,8 +156,9 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
       initialDate: _selectedDay ?? days.first,
       firstDate: days.first,
       lastDate: days.last,
-      selectableDayPredicate: (day) =>
-          days.any((d) => d.year == day.year && d.month == day.month && d.day == day.day),
+      selectableDayPredicate: (day) => days.any(
+        (d) => d.year == day.year && d.month == day.month && d.day == day.day,
+      ),
     );
     if (picked != null) setState(() => _selectedDay = picked);
   }
@@ -150,17 +181,26 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
 
   ActivityDto? _getOverlappingActivity() {
     if (_selectedDay == null || _startTime == null) return null;
-    final activities = ref.read(tripActivitiesProvider(widget.tripId)).whenOrNull(data: (list) => list) ?? [];
+    final activities =
+        ref
+            .read(tripActivitiesProvider(widget.tripId))
+            .whenOrNull(data: (list) => list) ??
+        [];
     final selectedDateStr = _toApiDate(_selectedDay!);
     final startTime = _startTime!;
-    final endTime = _endTime ?? TimeOfDay(hour: startTime.hour + 1, minute: startTime.minute);
+    final endTime =
+        _endTime ??
+        TimeOfDay(hour: startTime.hour + 1, minute: startTime.minute);
     for (final activity in activities) {
       if (activity.activityDate != selectedDateStr) continue;
       if (activity.startTime == null) continue;
       final existingStart = parseTime(activity.startTime!);
       final existingEnd = activity.endTime != null
           ? parseTime(activity.endTime!)
-          : TimeOfDay(hour: existingStart.hour + 1, minute: existingStart.minute);
+          : TimeOfDay(
+              hour: existingStart.hour + 1,
+              minute: existingStart.minute,
+            );
       if (timesOverlap(startTime, endTime, existingStart, existingEnd)) {
         return activity;
       }
@@ -175,8 +215,14 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
         title: const Text('Time conflict'),
         content: Text('At this time you already have "${conflict.name}".'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop('cancel'), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.of(ctx).pop('keep'), child: const Text('Keep current time')),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop('cancel'),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop('keep'),
+            child: const Text('Keep current time'),
+          ),
         ],
       ),
     );
@@ -197,20 +243,29 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
       if (!shouldProceed) return;
     }
 
-    setState(() { _submitting = true; _error = null; });
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
 
     try {
-      await ref.read(activityRepositoryProvider).createActivity(
-        widget.tripId,
-        CreateActivityRequestDto(
-          name: name,
-          placeId: _selectedPlace?.id,
-          activityDate: _selectedDay != null ? _toApiDate(_selectedDay!) : null,
-          startTime: _startTime != null ? _toApiTime(_startTime!) : null,
-          endTime: _endTime != null ? _toApiTime(_endTime!) : null,
-          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
-        ),
-      );
+      await ref
+          .read(activityRepositoryProvider)
+          .createActivity(
+            widget.tripId,
+            CreateActivityRequestDto(
+              name: name,
+              placeId: _selectedPlace?.id,
+              activityDate: _selectedDay != null
+                  ? _toApiDate(_selectedDay!)
+                  : null,
+              startTime: _startTime != null ? _toApiTime(_startTime!) : null,
+              endTime: _endTime != null ? _toApiTime(_endTime!) : null,
+              notes: _notesController.text.trim().isEmpty
+                  ? null
+                  : _notesController.text.trim(),
+            ),
+          );
       ref.invalidate(tripActivitiesProvider(widget.tripId));
     } on OfflineQueuedException {
       // queued — navigate to success anyway
@@ -244,7 +299,10 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
                 padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
                 child: Row(
                   children: [
-                    IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => context.pop(),
+                    ),
                     const Spacer(),
                   ],
                 ),
@@ -253,10 +311,16 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
                   children: [
-                    Text('Add activity', style: Theme.of(context).textTheme.headlineMedium),
+                    Text(
+                      'Add activity',
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
                     const SizedBox(height: 32),
 
-                    Text('Pick a place to visit', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      'Pick a place to visit',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 8),
                     if (_selectedPlace == null) ...[
                       ActivitySearchField(
@@ -265,12 +329,21 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
                         onChanged: _onSearchChanged,
                       ),
                       if (_suggestions.isNotEmpty)
-                        ActivitySuggestionsList(suggestions: _suggestions, onTap: _onSuggestionTap),
+                        ActivitySuggestionsList(
+                          suggestions: _suggestions,
+                          onTap: _onSuggestionTap,
+                        ),
                     ] else
-                      SelectedPlaceChip(place: _selectedPlace!, onClear: _clearPlace),
+                      SelectedPlaceChip(
+                        place: _selectedPlace!,
+                        onClear: _clearPlace,
+                      ),
 
                     const SizedBox(height: 24),
-                    Text('Activity name', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      'Activity name',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _nameController,
@@ -287,28 +360,45 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
                     ),
 
                     const SizedBox(height: 24),
-                    Text('Date & time', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      'Date & time',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 8),
-                    ActivityDayPicker(selectedDay: _selectedDay, onTap: _pickDay),
+                    ActivityDayPicker(
+                      selectedDay: _selectedDay,
+                      onTap: _pickDay,
+                    ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        Expanded(child: ActivityTimeTile(
-                          label: 'Start time',
-                          value: _startTime != null ? formatTime(_startTime!) : null,
-                          onTap: _pickStartTime,
-                        )),
+                        Expanded(
+                          child: ActivityTimeTile(
+                            label: 'Start time',
+                            value: _startTime != null
+                                ? formatTime(_startTime!)
+                                : null,
+                            onTap: _pickStartTime,
+                          ),
+                        ),
                         const SizedBox(width: 12),
-                        Expanded(child: ActivityTimeTile(
-                          label: 'End time',
-                          value: _endTime != null ? formatTime(_endTime!) : null,
-                          onTap: _pickEndTime,
-                        )),
+                        Expanded(
+                          child: ActivityTimeTile(
+                            label: 'End time',
+                            value: _endTime != null
+                                ? formatTime(_endTime!)
+                                : null,
+                            onTap: _pickEndTime,
+                          ),
+                        ),
                       ],
                     ),
 
                     const SizedBox(height: 24),
-                    Text('Additional notes', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      'Additional notes',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _notesController,
@@ -326,12 +416,17 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
 
                     if (_hasInvalidTime) ...[
                       const SizedBox(height: 12),
-                      ActivityErrorBanner(message: 'End time must be after start time.'),
+                      ActivityErrorBanner(
+                        message: 'End time must be after start time.',
+                      ),
                     ],
 
                     if (_error != null) ...[
                       const SizedBox(height: 12),
-                      Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                      Text(
+                        _error!,
+                        style: const TextStyle(color: Colors.redAccent),
+                      ),
                     ],
 
                     const SizedBox(height: 32),
@@ -346,8 +441,14 @@ class _AddActivityScreenState extends ConsumerState<AddActivityScreen> {
                           shape: const StadiumBorder(),
                         ),
                         child: _submitting
-                            ? const SizedBox(width: 20, height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
                             : const Text('Add to trip'),
                       ),
                     ),

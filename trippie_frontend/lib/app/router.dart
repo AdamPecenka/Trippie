@@ -27,6 +27,7 @@ import 'package:trippie_frontend/features/trip/presentation/edit_activity_screen
 import 'package:trippie_frontend/features/trip/presentation/flights_screen.dart';
 import 'package:trippie_frontend/features/trip/presentation/add_flight_screen.dart';
 import 'package:trippie_frontend/features/trip/presentation/trip_members_screen.dart';
+import 'package:trippie_frontend/features/trip/data/activity_dto.dart';
 
 part 'router.g.dart';
 
@@ -209,7 +210,11 @@ GoRouter router(Ref ref) {
                         path: 'activity/create',
                         builder: (context, state) {
                           final tripId = state.pathParameters['tripId']!;
-                          return AddActivityScreen(tripId: tripId);
+                          final place = state.extra as PlaceDto?;
+                          return AddActivityScreen(
+                            tripId: tripId,
+                            initialPlace: place,
+                          );
                         },
                       ),
                       GoRoute(

@@ -3,19 +3,26 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:trippie_frontend/app/router.dart';
 import 'package:trippie_frontend/core/theme/app_theme.dart';
 import 'package:trippie_frontend/features/auth/data/auth_providers.dart';
 import 'package:trippie_frontend/features/profile/data/favorite_dto.dart';
+import 'package:trippie_frontend/features/trip/data/activity_dto.dart';
 import 'package:trippie_frontend/features/trip/data/trip_providers.dart';
 import 'package:trippie_frontend/features/trip/presentation/widgets/trip_state_badge.dart';
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
-final favoritesProvider = FutureProvider.autoDispose<List<FavoriteDto>>((ref) async {
+final favoritesProvider = FutureProvider.autoDispose<List<FavoriteDto>>((
+  ref,
+) async {
   final api = ref.watch(apiServiceProvider);
   final resp = await api.dio.get('/api/favorites');
   final list = resp.data['data'] as List;
-  return list.map((j) => FavoriteDto.fromJson(j as Map<String, dynamic>)).toList();
+  return list
+      .map((j) => FavoriteDto.fromJson(j as Map<String, dynamic>))
+      .toList();
 });
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
@@ -49,21 +56,32 @@ class FavoritesScreen extends ConsumerWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Favorites',
-                            style: Theme.of(context).textTheme.headlineMedium),
-                        Text('Places you want to visit',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: AppColors.textSecondary)),
+                        Text(
+                          'Favorites',
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                        Text(
+                          'Places you want to visit',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppColors.textSecondary),
+                        ),
                       ],
                     ),
                     const Spacer(),
                     GestureDetector(
                       onTap: () => _showAddSheet(context, ref),
                       child: Container(
-                        width: 44, height: 44,
+                        width: 44,
+                        height: 44,
                         decoration: const BoxDecoration(
-                          color: Color.fromRGBO(181, 130, 248, 1), shape: BoxShape.circle),
-                        child: const Icon(Icons.add, color: Colors.white, size: 22),
+                          color: Color.fromRGBO(181, 130, 248, 1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          color: Colors.white,
+                          size: 22,
+                        ),
                       ),
                     ),
                   ],
@@ -74,7 +92,8 @@ class FavoritesScreen extends ConsumerWidget {
               // ── Content ────────────────────────────────────────────
               Expanded(
                 child: favAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (e, _) => _ErrorState(
                     onRetry: () => ref.invalidate(favoritesProvider),
                   ),
@@ -102,9 +121,8 @@ class FavoritesScreen extends ConsumerWidget {
       useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _AddFavoriteSheet(
-        onAdded: () => ref.invalidate(favoritesProvider),
-      ),
+      builder: (_) =>
+          _AddFavoriteSheet(onAdded: () => ref.invalidate(favoritesProvider)),
     );
   }
 
@@ -135,44 +153,40 @@ class FavoritesScreen extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => _TripPickerSheet(
         favorite: fav,
-        onPicked: (tripId) async {
-          try {
-            final api = ref.read(apiServiceProvider);
-            await api.dio.post(
-              '/api/trips/$tripId/activities',
-              data: {'placeId': fav.place.id, 'name': fav.place.name},
-            );
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${fav.place.name} added to trip ✓'),
-                  backgroundColor: const Color(0xFF4CAF50),
-                ),
-              );
-            }
-          } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed: $e')),
-              );
-            }
-          }
+        onPicked: (tripId) {
+          // close all bottom sheets with a single go_router navigation
+          context.push(
+            AppRoutes.createActivity.replaceFirst(':tripId', tripId),
+            extra: PlaceDto(
+              id: fav.place.id,
+              name: fav.place.name,
+              address: fav.place.address,
+              city: fav.place.city,
+              country: fav.place.country,
+              latitude: fav.place.latitude ?? 0,
+              longitude: fav.place.longitude ?? 0,
+              googlePlaceId: fav.place.googlePlaceId,
+            ),
+          );
         },
       ),
     );
   }
 
   Future<void> _deleteFavorite(
-      BuildContext context, WidgetRef ref, FavoriteDto fav) async {
+    BuildContext context,
+    WidgetRef ref,
+    FavoriteDto fav,
+  ) async {
     try {
       final api = ref.read(apiServiceProvider);
       await api.dio.delete('/api/favorites/${fav.place.id}');
       ref.invalidate(favoritesProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not remove: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not remove: $e')));
       }
     }
   }
@@ -210,7 +224,11 @@ class _GroupedList extends StatelessWidget {
 
     return ListView.builder(
       padding: EdgeInsets.fromLTRB(
-        24, 0, 24, MediaQuery.of(context).padding.bottom + 80),
+        24,
+        0,
+        24,
+        MediaQuery.of(context).padding.bottom + 80,
+      ),
       itemCount: cities.length,
       itemBuilder: (_, i) {
         final city = cities[i];
@@ -223,19 +241,22 @@ class _GroupedList extends StatelessWidget {
               padding: const EdgeInsets.only(top: 16, bottom: 8),
               child: Text(
                 city,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
             ),
             // Items
-            ...items.map((fav) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _FavoriteCard(
-                favorite: fav,
-                onTap: () => onTap(fav),
-                onDelete: () => onDelete(fav),
+            ...items.map(
+              (fav) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _FavoriteCard(
+                  favorite: fav,
+                  onTap: () => onTap(fav),
+                  onDelete: () => onDelete(fav),
+                ),
               ),
-            )),
+            ),
           ],
         );
       },
@@ -268,29 +289,39 @@ class _FavoriteCard extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 42, height: 42,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
                   color: AppColors.accent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.place_outlined,
-                    color: AppColors.accent, size: 22),
+                child: const Icon(
+                  Icons.place_outlined,
+                  color: AppColors.accent,
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(place.name,
-                        style: Theme.of(context).textTheme.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w700)),
+                    Text(
+                      place.name,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     if (place.address?.isNotEmpty == true) ...[
                       const SizedBox(height: 2),
-                      Text(place.address!,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.textSecondary),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis),
+                      Text(
+                        place.address!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   ],
                 ),
@@ -299,8 +330,11 @@ class _FavoriteCard extends StatelessWidget {
                 onTap: onDelete,
                 child: const Padding(
                   padding: EdgeInsets.all(6),
-                  child: Icon(Icons.favorite,
-                      color: Color(0xFFE57373), size: 22),
+                  child: Icon(
+                    Icons.favorite,
+                    color: Color(0xFFE57373),
+                    size: 22,
+                  ),
                 ),
               ),
             ],
@@ -333,14 +367,19 @@ class _DetailSheet extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
-        24, 20, 24, MediaQuery.of(context).padding.bottom + 24),
+        24,
+        20,
+        24,
+        MediaQuery.of(context).padding.bottom + 24,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
                 color: Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(2),
@@ -352,14 +391,21 @@ class _DetailSheet extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(place.name,
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.w700)),
+                child: Text(
+                  place.name,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
               IconButton(
                 onPressed: onDelete,
-                icon: const Icon(Icons.favorite,
-                    color: Color(0xFFE57373), size: 22),
+                icon: const Icon(
+                  Icons.favorite,
+                  color: Color(0xFFE57373),
+                  size: 22,
+                ),
                 tooltip: 'Remove from favorites',
               ),
               IconButton(
@@ -373,13 +419,20 @@ class _DetailSheet extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.location_on_outlined,
-                    size: 16, color: AppColors.textSecondary),
+                const Icon(
+                  Icons.location_on_outlined,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text(place.address!,
-                      style: const TextStyle(
-                          color: AppColors.textSecondary, fontSize: 14)),
+                  child: Text(
+                    place.address!,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -423,14 +476,19 @@ class _TripPickerSheet extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
-        24, 20, 24, MediaQuery.of(context).padding.bottom + 24),
+        24,
+        20,
+        24,
+        MediaQuery.of(context).padding.bottom + 24,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
                 color: Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(2),
@@ -441,8 +499,10 @@ class _TripPickerSheet extends ConsumerWidget {
           Row(
             children: [
               const Expanded(
-                child: Text('Choose a trip',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                child: Text(
+                  'Choose a trip',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                ),
               ),
               IconButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -451,9 +511,13 @@ class _TripPickerSheet extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 4),
-          Text('Adding: ${favorite.place.name}',
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 13)),
+          Text(
+            'Adding: ${favorite.place.name}',
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+            ),
+          ),
           const SizedBox(height: 16),
 
           tripsAsync.when(
@@ -464,17 +528,21 @@ class _TripPickerSheet extends ConsumerWidget {
             error: (_, __) => const Text('Failed to load trips'),
             data: (trips) {
               final active = trips
-                  .where((t) =>
-                      t.status.name.toUpperCase() == 'PLANNING' ||
-                      t.status.name.toUpperCase() == 'ACTIVE')
+                  .where(
+                    (t) =>
+                        t.status.name.toUpperCase() == 'PLANNING' ||
+                        t.status.name.toUpperCase() == 'ACTIVE',
+                  )
                   .toList();
 
               if (active.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.symmetric(vertical: 24),
                   child: Center(
-                    child: Text('No active trips found',
-                        style: TextStyle(color: AppColors.textSecondary)),
+                    child: Text(
+                      'No active trips found',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
                   ),
                 );
               }
@@ -502,16 +570,20 @@ class _TripPickerSheet extends ConsumerWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(trip.name,
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700)),
+                                  Text(
+                                    trip.name,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
                                   const SizedBox(height: 2),
                                   Text(
                                     '${_fmt(trip.startDate)} – ${_fmt(trip.endDate)}',
                                     style: const TextStyle(
-                                        fontSize: 13,
-                                        color: AppColors.textSecondary),
+                                      fontSize: 13,
+                                      color: AppColors.textSecondary,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -532,7 +604,21 @@ class _TripPickerSheet extends ConsumerWidget {
   }
 
   String _fmt(DateTime d) {
-    const m = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const m = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return '${d.day}. ${m[d.month]} ${d.year}';
   }
 }
@@ -569,7 +655,10 @@ class _AddFavoriteSheetState extends ConsumerState<_AddFavoriteSheet> {
     _debounce?.cancel();
     setState(() => _errorMsg = null);
     if (q.trim().length < 2) {
-      setState(() { _suggestions = []; _searching = false; });
+      setState(() {
+        _suggestions = [];
+        _searching = false;
+      });
       return;
     }
     setState(() => _searching = true);
@@ -585,10 +674,12 @@ class _AddFavoriteSheetState extends ConsumerState<_AddFavoriteSheet> {
         if (mounted) {
           setState(() {
             _suggestions = list
-                .map((j) => _Suggestion(
-                      googlePlaceId: j['googlePlaceId'] as String,
-                      displayName: j['displayName'] as String,
-                    ))
+                .map(
+                  (j) => _Suggestion(
+                    googlePlaceId: j['googlePlaceId'] as String,
+                    displayName: j['displayName'] as String,
+                  ),
+                )
                 .toList();
             _searching = false;
           });
@@ -607,7 +698,10 @@ class _AddFavoriteSheetState extends ConsumerState<_AddFavoriteSheet> {
   Future<void> _addFavorite(_Suggestion s) async {
     // Dismiss keyboard and clear
     FocusScope.of(context).unfocus();
-    setState(() { _searching = true; _errorMsg = null; });
+    setState(() {
+      _searching = true;
+      _errorMsg = null;
+    });
 
     try {
       final api = ref.read(apiServiceProvider);
@@ -657,7 +751,8 @@ class _AddFavoriteSheetState extends ConsumerState<_AddFavoriteSheet> {
                 padding: const EdgeInsets.only(top: 12, bottom: 4),
                 child: Center(
                   child: Container(
-                    width: 40, height: 4,
+                    width: 40,
+                    height: 4,
                     decoration: BoxDecoration(
                       color: Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(2),
@@ -672,9 +767,13 @@ class _AddFavoriteSheetState extends ConsumerState<_AddFavoriteSheet> {
                 child: Row(
                   children: [
                     const Expanded(
-                      child: Text('Add Favorite',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w700)),
+                      child: Text(
+                        'Add Favorite',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
@@ -700,27 +799,37 @@ class _AddFavoriteSheetState extends ConsumerState<_AddFavoriteSheet> {
                       borderSide: BorderSide.none,
                     ),
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                     prefixIcon: _searching
                         ? const Padding(
                             padding: EdgeInsets.all(12),
                             child: SizedBox(
-                              width: 20, height: 20,
+                              width: 20,
+                              height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation(
-                                    AppColors.accent),
+                                  AppColors.accent,
+                                ),
                               ),
                             ),
                           )
-                        : const Icon(Icons.search,
-                            size: 20, color: AppColors.textSecondary),
+                        : const Icon(
+                            Icons.search,
+                            size: 20,
+                            color: AppColors.textSecondary,
+                          ),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear, size: 18),
                             onPressed: () {
                               _searchController.clear();
-                              setState(() { _suggestions = []; _errorMsg = null; });
+                              setState(() {
+                                _suggestions = [];
+                                _errorMsg = null;
+                              });
                             },
                           )
                         : null,
@@ -735,21 +844,29 @@ class _AddFavoriteSheetState extends ConsumerState<_AddFavoriteSheet> {
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.red.shade50,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.error_outline,
-                            size: 16, color: Colors.red.shade600),
+                        Icon(
+                          Icons.error_outline,
+                          size: 16,
+                          color: Colors.red.shade600,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(_errorMsg!,
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.red.shade700)),
+                          child: Text(
+                            _errorMsg!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.red.shade700,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -765,16 +882,16 @@ class _AddFavoriteSheetState extends ConsumerState<_AddFavoriteSheet> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text('🔍',
-                                style: TextStyle(fontSize: 36)),
+                            const Text('🔍', style: TextStyle(fontSize: 36)),
                             const SizedBox(height: 12),
                             Text(
                               _searchController.text.isEmpty
                                   ? 'Start typing to search places'
                                   : 'No results found',
                               style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 14),
+                                color: AppColors.textSecondary,
+                                fontSize: 14,
+                              ),
                             ),
                           ],
                         ),
@@ -782,7 +899,9 @@ class _AddFavoriteSheetState extends ConsumerState<_AddFavoriteSheet> {
                     : ListView.separated(
                         controller: scrollController,
                         padding: EdgeInsets.fromLTRB(
-                          20, 0, 20,
+                          20,
+                          0,
+                          20,
                           bottomInset + bottomPad + 16,
                         ),
                         itemCount: _suggestions.length,
@@ -795,28 +914,41 @@ class _AddFavoriteSheetState extends ConsumerState<_AddFavoriteSheet> {
                           final s = _suggestions[i];
                           return ListTile(
                             contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 4, vertical: 4),
+                              horizontal: 4,
+                              vertical: 4,
+                            ),
                             leading: Container(
-                              width: 36, height: 36,
+                              width: 36,
+                              height: 36,
                               decoration: BoxDecoration(
                                 color: AppColors.accent.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Icon(Icons.location_on_outlined,
-                                  color: AppColors.accent, size: 18),
+                              child: const Icon(
+                                Icons.location_on_outlined,
+                                color: AppColors.accent,
+                                size: 18,
+                              ),
                             ),
-                            title: Text(s.displayName,
-                                style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500)),
+                            title: Text(
+                              s.displayName,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                             trailing: Container(
-                              width: 32, height: 32,
+                              width: 32,
+                              height: 32,
                               decoration: BoxDecoration(
                                 color: AppColors.accent.withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.add,
-                                  color: AppColors.accent, size: 18),
+                              child: const Icon(
+                                Icons.add,
+                                color: AppColors.accent,
+                                size: 18,
+                              ),
                             ),
                             onTap: () => _addFavorite(s),
                           );
@@ -847,17 +979,19 @@ class _EmptyState extends StatelessWidget {
           children: [
             const Text('🗺️', style: TextStyle(fontSize: 52)),
             const SizedBox(height: 16),
-            Text('Your wishlist is empty',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w700),
-                textAlign: TextAlign.center),
+            Text(
+              'Your wishlist is empty',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 8),
             Text(
               'Save places you dream about visiting and add them to your trips when you\'re ready to go.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -893,14 +1027,19 @@ class _ErrorState extends StatelessWidget {
           children: [
             const Text('😕', style: TextStyle(fontSize: 48)),
             const SizedBox(height: 16),
-            Text('Couldn\'t load favorites',
-                style: Theme.of(context).textTheme.titleMedium,
-                textAlign: TextAlign.center),
+            Text(
+              'Couldn\'t load favorites',
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 8),
-            Text('Check your connection and try again.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary),
-                textAlign: TextAlign.center),
+            Text(
+              'Check your connection and try again.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 20),
             OutlinedButton.icon(
               onPressed: onRetry,
