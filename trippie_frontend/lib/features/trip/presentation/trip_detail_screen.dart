@@ -53,15 +53,28 @@ class TripDetailScreen extends ConsumerWidget {
                       icon: const Icon(Icons.menu),
                       onSelected: (value) {
                         if (value == 'info') context.push('/home/trip/$tripId/hub');
+                        if (value == 'status') _changeState(context, ref, trip);
+                        if (value == 'leave') _leaveTrip(context, ref, trip);
                       },
-                      itemBuilder: (_) => [
-                        const PopupMenuItem(value: 'info', child: Text('Trip information')),
-                        const PopupMenuItem(value: 'status', child: Text('Change state of trip')),
-                        const PopupMenuItem(
-                          value: 'leave',
-                          child: Text('Leave trip', style: TextStyle(color: Colors.redAccent)),
-                        ),
-                      ],
+                      itemBuilder: (_) {
+                        final currentUserId = ref.read(authProvider).whenOrNull(data: (u) => u?.id);
+                        final isManager = ref.read(tripMembersProvider(tripId)).whenOrNull(
+                              data: (members) => members
+                                  .where((m) => m.userId == currentUserId)
+                                  .firstOrNull
+                                  ?.tripRole == 'TRIP_MANAGER',
+                            ) ?? false;
+
+                        return [
+                          const PopupMenuItem(value: 'info', child: Text('Trip information')),
+                          if (isManager)
+                            const PopupMenuItem(value: 'status', child: Text('Change state of trip')),
+                          const PopupMenuItem(
+                            value: 'leave',
+                            child: Text('Leave trip', style: TextStyle(color: Colors.redAccent)),
+                          ),
+                        ];
+                      },
                     ),
                   ],
                 ),
@@ -116,6 +129,102 @@ class TripDetailScreen extends ConsumerWidget {
     '', 'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December',
   ][m];
+
+  Future<void> _changeState(BuildContext context, WidgetRef ref, TripDto? trip) async {
+    if (trip == null) return;
+
+    final TripStatus? nextStatus = switch (trip.status) {
+      TripStatus.planning => TripStatus.active,
+      TripStatus.active   => TripStatus.finished,
+      TripStatus.finished => null,
+    };
+
+    if (nextStatus == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Trip is already finished.')));
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Change trip status'),
+        content: Text(
+          'Set status to ${nextStatus.label}?'
+          '${nextStatus == TripStatus.finished ? '\n\nThis cannot be undone.' : ''}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('Confirm',
+                style: TextStyle(
+                  color: nextStatus == TripStatus.finished
+                      ? Colors.red
+                      : AppColors.accent,
+                )),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      final api = ref.read(apiServiceProvider);
+      await api.dio.patch(
+        '/api/trips/$tripId/status',
+        data: {'status': nextStatus.label},
+      );
+      ref.invalidate(tripsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Status changed to ${nextStatus.label} ✓')));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+      }
+    }
+  }
+
+  Future<void> _leaveTrip(BuildContext context, WidgetRef ref, TripDto? trip) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Leave trip'),
+        content: Text('Are you sure you want to leave "${trip?.name ?? 'this trip'}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Leave', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      final api = ref.read(apiServiceProvider);
+      await api.dio.delete('/api/trips/$tripId/members/me');
+      ref.invalidate(tripsProvider);
+      if (context.mounted) context.go('/home');
+    } catch (e) {
+      if (context.mounted) {
+        final msg = e.toString().contains('409')
+            ? 'Trip Manager cannot leave. Transfer ownership first.'
+            : e.toString().replaceFirst('Exception: ', '');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
+    }
+  }
 }
 
 class _ActivitiesList extends StatelessWidget {
