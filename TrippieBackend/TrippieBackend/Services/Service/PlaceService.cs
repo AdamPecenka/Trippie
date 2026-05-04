@@ -20,7 +20,7 @@ public class PlaceService : IPlaceService
         _httpClient = httpClient;
         _httpClient.DefaultRequestHeaders.Add("X-Goog-Api-Key", configuration["GooglePlaces:ApiKey"]);
     }
-    
+
     public async Task<ServiceResult<List<PlaceSuggestionDto>>> Autocomplete(string query, double? lat, double? lng)
     {
         var requestBody = new AutocompleteRequestBody
@@ -42,7 +42,7 @@ public class PlaceService : IPlaceService
         );
 
         var json = await response.Content.ReadFromJsonAsync<JsonElement>();
-    
+
         var suggestions = json.GetProperty("suggestions")
             .EnumerateArray()
             .Select(s =>
@@ -57,7 +57,7 @@ public class PlaceService : IPlaceService
 
         return ServiceResult<List<PlaceSuggestionDto>>.Ok(suggestions);
     }
-    
+
     public async Task<ServiceResult<PlaceDto>> Resolve(string googlePlaceId)
     {
         var request = new HttpRequestMessage(
@@ -86,15 +86,21 @@ public class PlaceService : IPlaceService
 
         foreach (var component in addressComponents)
         {
-            var types = component.GetProperty("types").EnumerateArray().Select(t => t.GetString()).ToList();
-    
+            if (!component.TryGetProperty("types", out var typesElement))
+                continue;
+
+            var types = typesElement
+                .EnumerateArray()
+                .Select(t => t.GetString() ?? string.Empty)
+                .ToList();
+
             if (types.Contains("locality"))
                 city = component.GetProperty("longText").GetString();
-    
+
             if (types.Contains("country"))
                 country = component.GetProperty("longText").GetString();
         }
-        
+
         // check if already exists in DB
         var existing = await _context.Places.SingleOrDefaultAsync(x => x.GooglePlaceId == googlePlaceId);
         if (existing != null)
@@ -121,7 +127,7 @@ public class PlaceService : IPlaceService
 
         return ServiceResult<PlaceDto>.Ok(MapToDto(place));
     }
-    
+
     public async Task<ServiceResult<PlaceDto>> GetPlace(Guid placeId)
     {
         var place = await _context.Places.SingleOrDefaultAsync(x => x.Id == placeId);
@@ -131,9 +137,9 @@ public class PlaceService : IPlaceService
 
         return ServiceResult<PlaceDto>.Ok(MapToDto(place));
     }
-    
-    
-    
+
+
+
     private PlaceDto MapToDto(Place place)
     {
         return new()
