@@ -2,8 +2,6 @@
 - [x] UAT 1: Používateľ vytvorí trip
     - [x] dokoncit screen pre accomondation
 - [x] UAT 2: Používateľ vytvorí aktivitu
-    - [ ] oznacit povinné polia pri formulári
-    - [ ] vymeniť poradie -> najprv názov a potom poloha aktivity
 - [x] UAT 3: Pridanie lokácie do favorites
 - [x] UAT 4: Používateľ sa pripojí do tripu pomocou QR kódu
 - [x] UAT 5: Používateľ pridá lokáciu z favorites ako aktivitu do tripu
