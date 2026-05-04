@@ -88,7 +88,6 @@ class ProfileScreen extends ConsumerWidget {
                       icon: Icons.logout,
                       iconColor: Colors.redAccent,
                       title: 'Log out',
-                      subtitle: 'Further secure your account for safety',
                       onTap: () => _onLogoutTapped(context, ref),
                     ),
                   ],
