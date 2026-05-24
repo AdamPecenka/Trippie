@@ -21,8 +21,7 @@ TripRepository tripRepository(Ref ref) {
 }
 
 // ---------------------------------------------------------------------------
-// All trips — keepAlive, with refresh()
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 @Riverpod(keepAlive: true)
 class TripsNotifier extends _$TripsNotifier {
   @override
